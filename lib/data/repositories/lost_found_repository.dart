@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/lost_found_model.dart';
 import '../mock/mock_lost_found.dart';
+import 'supabase_lost_found_repository.dart';
+
 
 abstract class LostFoundRepository {
   Stream<List<LostFoundModel>> getItemsStream();
@@ -69,10 +71,11 @@ class InMemoryLostFoundRepository implements LostFoundRepository {
 }
 
 final lostFoundRepositoryProvider = Provider<LostFoundRepository>((ref) {
-  final repo = InMemoryLostFoundRepository();
+  final repo = SupabaseLostFoundRepository();
   ref.onDispose(repo.dispose);
   return repo;
 });
+
 
 final lostFoundItemsProvider = StreamProvider<List<LostFoundModel>>((ref) {
   final repo = ref.watch(lostFoundRepositoryProvider);
