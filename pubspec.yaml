@@ -1,0 +1,65 @@
+name: padma
+description: "Padma - AUST Campus Transit Tracker & Student Community Hub"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  flutter_riverpod: ^2.6.1
+  provider: ^6.1.2
+  go_router: ^14.8.1
+  google_fonts: ^6.2.1
+  flutter_animate: ^4.5.2
+  shimmer: ^3.0.0
+  gap: ^3.0.1
+  cached_network_image: ^3.4.1
+  flutter_svg: ^2.0.10+1
+  intl: ^0.20.3
+  latlong2: ^0.9.1
+  flutter_map: ^7.0.2
+  maplibre_gl: ^0.27.1
+  geolocator: ^14.1.1
+  shared_preferences: ^2.3.2
+  http: ^1.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.1
+  flutter_native_splash: ^2.4.1
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: false
+  image_path: "assets/images/padma_logo.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#0E1A24"
+  adaptive_icon_foreground: "assets/images/padma_icon_foreground.png"
+
+flutter_native_splash:
+  color: "#0E1A24"
+  image: "assets/images/padma_logo.png"
+  color_dark: "#0E1A24"
+  image_dark: "assets/images/padma_logo.png"
+  android_12:
+    color: "#0E1A24"
+    image: "assets/images/padma_logo.png"
+    color_dark: "#0E1A24"
+    image_dark: "assets/images/padma_logo.png"
+
+flutter:
+  uses-material-design: true
+  generate: true
+  assets:
+    - assets/
+    - assets/images/
