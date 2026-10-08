@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/notification_model.dart';
 import '../mock/mock_notifications.dart';
+import 'supabase_notification_repository.dart';
+
 
 abstract class NotificationRepository {
   Stream<List<NotificationModel>> getNotificationsStream();
@@ -62,10 +64,11 @@ class InMemoryNotificationRepository implements NotificationRepository {
 }
 
 final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
-  final repo = InMemoryNotificationRepository();
+  final repo = SupabaseNotificationRepository();
   ref.onDispose(repo.dispose);
   return repo;
 });
+
 
 final notificationsListProvider = StreamProvider<List<NotificationModel>>((ref) {
   final repo = ref.watch(notificationRepositoryProvider);

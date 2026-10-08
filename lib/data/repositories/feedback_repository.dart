@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/feedback_model.dart';
+import 'supabase_feedback_repository.dart';
 
 abstract class FeedbackRepository {
   Future<void> submitFeedback({
@@ -37,5 +38,6 @@ class InMemoryFeedbackRepository implements FeedbackRepository {
 }
 
 final feedbackRepositoryProvider = Provider<FeedbackRepository>((ref) {
-  return InMemoryFeedbackRepository();
+  return SupabaseFeedbackRepository();
 });
+
