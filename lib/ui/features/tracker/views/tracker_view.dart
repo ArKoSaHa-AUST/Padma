@@ -450,7 +450,7 @@ class _TrackerViewState extends State<TrackerView> {
                             MaterialPageRoute(
                               builder: (_) => BusTelemetryChatView(
                                 onOpenDrawer: () => Navigator.pop(context),
-                                channelId: channelId,
+                                activeChannel: channelId,
                               ),
                             ),
                           );
