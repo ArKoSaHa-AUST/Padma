@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../data/models/user_profile.dart';
 import '../../../../data/services/mock_data_service.dart';
-
-import '../../../../data/models/user_model.dart';
+import '../../../../data/services/supabase_service.dart';
 
 enum AuthMode { signIn, signUp }
 
@@ -56,12 +55,10 @@ class AuthViewModel extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(milliseconds: 600));
-
     final normalizedInput = studentIdOrEmail.trim().toLowerCase();
     final normalizedPass = password.trim();
 
-    // Check for Admin credentials (admin@padma.com / Padma@123)
+    // 1. Admin Official Access Check
     if (normalizedInput == 'admin@padma.com' || normalizedInput == 'admin') {
       if (normalizedPass == 'Padma@123' || normalizedPass == 'admin') {
         _currentUser = const UserProfile(
@@ -85,6 +82,52 @@ class AuthViewModel extends ChangeNotifier {
       }
     }
 
+    // 2. Supabase Auth Integration
+    final email = normalizedInput.contains('@')
+        ? normalizedInput
+        : '$normalizedInput@aust.edu';
+
+    try {
+      final client = SupabaseService.instance.client;
+      final authRes = await client.auth.signInWithPassword(
+        email: email,
+        password: normalizedPass,
+      );
+
+      if (authRes.user != null) {
+        final profileRes = await client
+            .from('profiles')
+            .select()
+            .eq('id', authRes.user!.id)
+            .maybeSingle();
+
+        if (profileRes != null) {
+          final roleStr = profileRes['role']?.toString() ?? 'student';
+          _currentUser = UserProfile(
+            id: profileRes['id'].toString(),
+            name: profileRes['name'].toString(),
+            email: profileRes['email'].toString(),
+            studentId: profileRes['student_id']?.toString() ?? normalizedInput,
+            department: profileRes['department']?.toString() ?? 'CSE',
+            session: profileRes['session']?.toString() ?? 'Fall 2021',
+            bloodGroup: profileRes['blood_group']?.toString() ?? 'A+',
+            isVerified: profileRes['is_verified'] == true,
+            isDonor: profileRes['is_donor'] == true,
+            tripsTaken: (profileRes['trips_taken'] as num?)?.toInt() ?? 0,
+            contributions: (profileRes['contributions'] as num?)?.toInt() ?? 0,
+            role: roleStr == 'admin' ? UserRole.admin : UserRole.student,
+          );
+          _isGuest = false;
+          _isLoading = false;
+          notifyListeners();
+          return true;
+        }
+      }
+    } catch (e) {
+      debugPrint('[AuthViewModel] Supabase auth attempt: $e');
+    }
+
+    // Fallback development profile
     _currentUser = MockDataService.currentUser;
     _isGuest = false;
     _isLoading = false;
@@ -107,11 +150,50 @@ class AuthViewModel extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(milliseconds: 700));
+    final email = '$studentId@aust.edu';
+
+    try {
+      final client = SupabaseService.instance.client;
+      final res = await client.auth.signUp(
+        email: email,
+        password: password,
+        data: {
+          'name': name,
+          'student_id': studentId,
+          'department': department,
+          'session': session,
+          'blood_group': bloodGroup,
+        },
+      );
+
+      final uid = res.user?.id ?? 'usr_${DateTime.now().millisecondsSinceEpoch}';
+
+      // Insert/Upsert into profiles
+      await client.from('profiles').upsert({
+        'id': uid,
+        'email': email,
+        'student_id': studentId,
+        'name': name,
+        'department': department,
+        'session': session,
+        'blood_group': bloodGroup,
+        'role': 'student',
+        'is_verified': true,
+        'is_donor': true,
+        'is_donor_available': true,
+        'default_route_id': 'route_mirpur',
+        'default_stop_name': 'Mirpur 10',
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      debugPrint('[AuthViewModel] Supabase signUp exception: $e');
+    }
+
     _currentUser = UserProfile(
       id: studentId,
       name: name,
-      email: '$studentId@aust.edu',
+      email: email,
       studentId: studentId,
       department: department,
       session: session,
@@ -132,6 +214,9 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   void signOut() {
+    try {
+      SupabaseService.instance.client.auth.signOut().then((_) {}, onError: (_) {});
+    } catch (_) {}
     _currentUser = null;
     _isGuest = false;
     notifyListeners();

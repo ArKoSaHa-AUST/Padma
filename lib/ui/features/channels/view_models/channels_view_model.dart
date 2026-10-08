@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import '../../../../data/models/chat_message.dart';
 import '../../../../data/models/emergency_request.dart';
 import '../../../../data/services/mock_data_service.dart';
+import '../../../../data/services/supabase_service.dart';
 
 class ChannelsViewModel extends ChangeNotifier {
   final List<ChatMessage> _generalMessages = MockDataService.getGeneralChatMessages();
@@ -68,12 +70,117 @@ class ChannelsViewModel extends ChangeNotifier {
   final List<EmergencyRequest> _requests = MockDataService.getEmergencyRequests();
   String _selectedRequestFilter = 'all';
 
+  StreamSubscription<List<Map<String, dynamic>>>? _messagesSub;
+  StreamSubscription<List<Map<String, dynamic>>>? _requestsSub;
+
   List<ChatMessage> get generalMessages => _generalMessages;
   List<ChatMessage> get bus1Messages => _bus1Messages;
   List<ChatMessage> get bus2Messages => _bus2Messages;
   List<ChatMessage> get announcementsMessages => _announcementsMessages;
   List<ChatMessage> get emergencyBloodMessages => _emergencyBloodMessages;
   List<ChatMessage> get rideShareMessages => _rideShareMessages;
+
+  ChannelsViewModel() {
+    _initSupabaseRealtimeStreams();
+  }
+
+  void _initSupabaseRealtimeStreams() {
+    try {
+      final client = SupabaseService.instance.client;
+
+      // 1. Messages Realtime Stream
+      _messagesSub = client
+          .from('messages')
+          .stream(primaryKey: ['id'])
+          .order('created_at', ascending: true)
+          .listen((records) {
+        for (final r in records) {
+          final chId = r['channel_id']?.toString() ?? 'general';
+          final targetList = getMessagesForChannel(chId);
+
+          final msgId = r['id']?.toString() ?? '';
+          final reactionsRaw = r['reactions'];
+          final List<ChatReaction> reactions = [];
+          if (reactionsRaw is Map) {
+            reactionsRaw.forEach((k, v) {
+              reactions.add(ChatReaction(emoji: k.toString(), count: (v as num).toInt()));
+            });
+          }
+
+          final chatMsg = ChatMessage(
+            id: msgId,
+            senderName: r['sender_name']?.toString() ?? 'AUST Student',
+            senderRole: r['sender_role']?.toString() == 'admin' ? 'Transport Admin' : 'Verified Student',
+            avatarInitials: (r['sender_name']?.toString().isNotEmpty ?? false)
+                ? r['sender_name'].toString().substring(0, 2).toUpperCase()
+                : 'AU',
+            badgeText: r['badge_text']?.toString(),
+            text: r['text']?.toString() ?? '',
+            timestamp: r['created_at'] != null ? DateTime.parse(r['created_at'].toString()) : DateTime.now(),
+            isTelemetry: r['is_telemetry'] == true,
+            reactions: reactions,
+          );
+
+          final existingIdx = targetList.indexWhere((m) => m.id == msgId);
+          if (existingIdx != -1) {
+            targetList[existingIdx] = chatMsg;
+          } else {
+            targetList.add(chatMsg);
+          }
+        }
+        notifyListeners();
+      }, onError: (err) {
+        debugPrint('[ChannelsViewModel] Messages sub error: $err');
+      });
+
+      // 2. Emergency Requests Realtime Stream
+      _requestsSub = client
+          .from('emergency_requests')
+          .stream(primaryKey: ['id'])
+          .order('created_at', ascending: false)
+          .listen((records) {
+        for (final r in records) {
+          final reqId = r['id']?.toString() ?? '';
+          final typeStr = r['type']?.toString() ?? 'blood';
+          RequestCategory cat = RequestCategory.blood;
+          if (typeStr == 'ride') cat = RequestCategory.ride;
+          if (typeStr == 'notes') cat = RequestCategory.notes;
+          if (typeStr == 'other') cat = RequestCategory.other;
+
+          final urgencyStr = r['urgency']?.toString() ?? 'medium';
+          RequestUrgency urg = RequestUrgency.medium;
+          if (urgencyStr == 'critical') urg = RequestUrgency.critical;
+          if (urgencyStr == 'low') urg = RequestUrgency.low;
+
+          final req = EmergencyRequest(
+            id: reqId,
+            title: r['title']?.toString() ?? '',
+            description: r['description']?.toString() ?? '',
+            patientLocation: r['location']?.toString() ?? 'Campus',
+            bloodGroup: r['blood_group']?.toString() ?? 'A+',
+            category: cat,
+            urgency: urg,
+            contactNumber: r['contact']?.toString() ?? '',
+            postedBy: r['requester_name']?.toString() ?? 'Student',
+            postedAt: r['created_at'] != null ? DateTime.parse(r['created_at'].toString()) : DateTime.now(),
+          );
+
+          final existingIdx = _requests.indexWhere((x) => x.id == reqId);
+          if (existingIdx != -1) {
+            _requests[existingIdx] = req;
+          } else {
+            _requests.insert(0, req);
+          }
+        }
+        notifyListeners();
+      }, onError: (err) {
+        debugPrint('[ChannelsViewModel] Requests sub error: $err');
+      });
+
+    } catch (e) {
+      debugPrint('[ChannelsViewModel] Init realtime error: $e');
+    }
+  }
 
   List<ChatMessage> getMessagesForChannel(String channelId) {
     switch (channelId.toLowerCase()) {
@@ -129,10 +236,11 @@ class ChannelsViewModel extends ChangeNotifier {
     bool isTelemetry = false,
   }) {
     if (text.trim().isEmpty) return;
+    final msgId = 'msg_${DateTime.now().millisecondsSinceEpoch}';
     final list = getMessagesForChannel(channelId);
     list.add(
       ChatMessage(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: msgId,
         senderName: senderName,
         senderRole: senderRole,
         avatarInitials: avatarInitials,
@@ -143,6 +251,27 @@ class ChannelsViewModel extends ChangeNotifier {
       ),
     );
     notifyListeners();
+
+    // Persist to Supabase
+    try {
+      final role = senderRole.toLowerCase().contains('admin') ? 'admin' : 'student';
+      SupabaseService.instance.client.from('messages').insert({
+        'id': msgId,
+        'channel_id': channelId,
+        'sender_id': 'user_student_active',
+        'sender_name': senderName,
+        'sender_role': role,
+        'badge_text': badgeText,
+        'text': text.trim(),
+        'is_telemetry': isTelemetry,
+        'reactions': {},
+        'created_at': DateTime.now().toIso8601String(),
+      }).then((_) {}, onError: (e) {
+        debugPrint('[ChannelsViewModel] Error sending to Supabase: $e');
+      });
+    } catch (e) {
+      debugPrint('[ChannelsViewModel] Insert exception: $e');
+    }
   }
 
   void sendGeneralMessage(String text, {String senderName = 'You (Student)'}) {
@@ -176,29 +305,24 @@ class ChannelsViewModel extends ChangeNotifier {
     String senderRole = 'Transport Admin',
     String badgeText = 'OFFICIAL ALERT',
   }) {
-    final targetList = getMessagesForChannel(channelId);
-    targetList.add(
-      ChatMessage(
-        id: 'dispatch_${DateTime.now().millisecondsSinceEpoch}_${channelId.hashCode}',
-        senderName: senderName,
-        senderRole: senderRole,
-        avatarInitials: 'ADM',
-        badgeText: badgeText,
-        text: text,
-        timestamp: DateTime.now(),
-        isTelemetry: true,
-        reactions: [
-          ChatReaction(emoji: '👍', count: 4, isUserReacted: true),
-          ChatReaction(emoji: '🚌', count: 6),
-        ],
-      ),
+    sendMessageToChannel(
+      channelId,
+      text,
+      senderName: senderName,
+      senderRole: senderRole,
+      badgeText: badgeText,
+      isTelemetry: true,
     );
-    notifyListeners();
   }
 
   void deleteMessage(String channelId, String messageId) {
     final list = getMessagesForChannel(channelId);
     list.removeWhere((m) => m.id == messageId);
+    try {
+      SupabaseService.instance.client.from('messages').delete().eq('id', messageId).then((_) {}, onError: (_) {});
+    } catch (e) {
+      debugPrint('[ChannelsViewModel] deleteMessage error: $e');
+    }
     notifyListeners();
   }
 
@@ -225,11 +349,47 @@ class ChannelsViewModel extends ChangeNotifier {
       );
     }
     notifyListeners();
+
+    try {
+      final Map<String, int> reactionsMap = {};
+      for (final r in message.reactions) {
+        reactionsMap[r.emoji] = r.count;
+      }
+      SupabaseService.instance.client.from('messages').update({
+        'reactions': reactionsMap,
+      }).eq('id', message.id).then((_) {}, onError: (_) {});
+    } catch (e) {
+      debugPrint('[ChannelsViewModel] toggleReaction Supabase error: $e');
+    }
   }
 
   void addEmergencyRequest(EmergencyRequest request) {
     _requests.insert(0, request);
     notifyListeners();
+
+    try {
+      SupabaseService.instance.client.from('emergency_requests').insert({
+        'id': request.id,
+        'type': request.category.name,
+        'title': request.title,
+        'description': request.description,
+        'location': request.patientLocation,
+        'contact': request.contactNumber,
+        'requester_name': request.postedBy,
+        'status': 'active',
+        'urgency': request.urgency.name,
+        'created_at': request.postedAt.toIso8601String(),
+      }).then((_) {}, onError: (_) {});
+    } catch (e) {
+      debugPrint('[ChannelsViewModel] addEmergencyRequest error: $e');
+    }
+  }
+
+
+  @override
+  void dispose() {
+    _messagesSub?.cancel();
+    _requestsSub?.cancel();
+    super.dispose();
   }
 }
-
