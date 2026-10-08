@@ -81,7 +81,7 @@ void main() {
 
     test('Can set and clear stoppage wait notice for short messages', () {
       final adminVM = AdminViewModel();
-      final busId = 'bus_1';
+      const busId = 'bus_1';
       final bus = adminVM.fleet.firstWhere((b) => b.id == busId);
 
       expect(bus.activeWaitNotice, isNull);
