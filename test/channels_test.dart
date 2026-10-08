@@ -1,71 +1,203 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:padma/data/models/emergency_request.dart';
 import 'package:padma/ui/features/channels/view_models/channels_view_model.dart';
+import 'package:padma/data/models/notification_item.dart';
+import 'package:padma/data/models/lost_found_model.dart';
 
 void main() {
-  group('ChannelsViewModel Unit Tests', () {
-    test('Can send message in general channel', () {
+  group('ChannelsViewModel Complete Workflow Tests', () {
+    test('Rules & Regulations channel: Admin posts, users can react', () {
       final channelsVM = ChannelsViewModel();
-      final initialCount = channelsVM.generalMessages.length;
+      final initialCount = channelsVM.rulesMessages.length;
 
-      channelsVM.sendGeneralMessage('Hello AUST campus!');
-      expect(channelsVM.generalMessages.length, initialCount + 1);
-      expect(channelsVM.generalMessages.last.text, 'Hello AUST campus!');
+      // Admin posts official rule
+      channelsVM.sendRulesMessage('Only students with valid ID cards may board during peak morning hours.');
+      expect(channelsVM.rulesMessages.length, initialCount + 1);
+      expect(channelsVM.rulesMessages.last.text, contains('ID cards'));
+      expect(channelsVM.rulesMessages.last.senderRole, 'Transport Admin');
+
+      // User adds reaction
+      final msg = channelsVM.rulesMessages.last;
+      channelsVM.toggleReaction(msg, '👍');
+      expect(msg.reactions.any((r) => r.emoji == '👍' && r.count > 0), true);
     });
 
-    test('Can filter emergency requests by blood only', () {
+    test('Announcements channel: Admin posts, users can react', () {
       final channelsVM = ChannelsViewModel();
-      channelsVM.setRequestFilter('blood');
+      final initialCount = channelsVM.announcementMessages.length;
 
-      for (var req in channelsVM.requests) {
-        expect(req.category, RequestCategory.blood);
-      }
+      channelsVM.sendAnnouncementMessage('Mid-term examination special bus schedule published.');
+      expect(channelsVM.announcementMessages.length, initialCount + 1);
+      expect(channelsVM.announcementMessages.last.senderRole, 'Transport Admin');
+
+      // Check notification triggered
+      expect(channelsVM.notifications.any((n) => n.type == NotificationType.announcement), true);
     });
 
-    test('Can toggle reaction on a message', () {
+    test('Padma 1 & Padma 2 channels: Both user and admin can post with senderTag and mentions', () {
       final channelsVM = ChannelsViewModel();
-      final msg = channelsVM.generalMessages.first;
-      final initialCount = msg.reactions.first.count;
+      final initialCount1 = channelsVM.padma1Messages.length;
+      final initialCount2 = channelsVM.padma2Messages.length;
 
-      channelsVM.toggleReaction(msg, msg.reactions.first.emoji);
-      expect(msg.reactions.first.count, isNot(equals(initialCount)));
+      // Student posts on Padma 1 with chatTag
+      channelsVM.sendPadma1Message(
+        'Padma 1 reached Mirpur 10 stop. 10 seats free.',
+        senderName: 'Padma Student',
+        senderTag: 'Padma_CSE_4-1_Mirpur10',
+      );
+      expect(channelsVM.padma1Messages.length, initialCount1 + 1);
+      expect(channelsVM.padma1Messages.last.senderTag, 'Padma_CSE_4-1_Mirpur10');
+
+      // Admin posts on Padma 2
+      channelsVM.sendPadma2Message(
+        'Padma 2 started from Uttara Sector 7.',
+        senderName: 'Engr. Rafiqul Islam',
+        senderTag: 'Rafiqul_Admin_Staff_Uttara',
+        senderRole: 'Transport Admin',
+      );
+      expect(channelsVM.padma2Messages.length, initialCount2 + 1);
+      expect(channelsVM.padma2Messages.last.senderRole, 'Transport Admin');
+
+      // Student mentions another student on Padma 1
+      channelsVM.sendPadma1Message(
+        'Hey @Rafi_CSE_3-2_Uttara is the bus crowded?',
+        senderName: 'Padma Student',
+        senderTag: 'Padma_CSE_4-1_Mirpur10',
+      );
+      expect(channelsVM.notifications.any((n) => n.type == NotificationType.mention), true);
     });
 
-    test('Can broadcast official short messages to general and bus channels', () {
+    test('Blood Request channel: Post with all required and optional fields', () {
       final channelsVM = ChannelsViewModel();
-      final initialGeneralCount = channelsVM.generalMessages.length;
-      final initialBus1Count = channelsVM.bus1Messages.length;
+      final initialCount = channelsVM.bloodRequests.length;
 
-      channelsVM.broadcastDispatchMessage(
-        'general',
-        '⏱️ **STATION WAIT NOTICE**: The bus will wait at mirpur 10 untill 12:30',
-        senderName: 'Padma Dispatch Control (Admin)',
+      channelsVM.postBloodRequest(
+        title: 'Urgent O+ Blood Needed at DMCH',
+        bloodGroup: 'O+',
+        hospitalName: 'Dhaka Medical College Hospital',
+        patientDetails: 'Post-surgery recovery patient',
+        messageBody: 'Required urgently before 4 PM today.',
+        requiredDate: '2026-10-09',
+        contactNumber: '+880 1711-998877',
+        email: 'padmaStudent@aust.edu',
+        extraInfo: 'Attendant will receive donor at emergency ward.',
+        authorName: 'Padma Student',
+        authorTag: 'Padma_CSE_4-1_Mirpur10',
+      );
+
+      expect(channelsVM.bloodRequests.length, initialCount + 1);
+      final newReq = channelsVM.bloodRequests.first;
+      expect(newReq.bloodGroup, 'O+');
+      expect(newReq.hospitalName, 'Dhaka Medical College Hospital');
+      expect(newReq.contactNumber, '+880 1711-998877');
+      expect(newReq.authorTag, 'Padma_CSE_4-1_Mirpur10');
+    });
+
+    test('Lost and Found channel: Post item with title, body, and image', () {
+      final channelsVM = ChannelsViewModel();
+      final initialCount = channelsVM.lostFoundItems.length;
+
+      channelsVM.postLostFoundItem(
+        title: 'Found AUST ID Card & Blue Calculator',
+        description: 'Left on Seat #14 in Padma 1 bus this morning.',
+        type: 'found',
+        imageUrl: 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa',
+        location: 'Padma 1 Bus',
+        contactNumber: '+880 1812-334455',
+        authorName: 'Padma Student',
+        authorTag: 'Padma_CSE_4-1_Mirpur10',
+      );
+
+      expect(channelsVM.lostFoundItems.length, initialCount + 1);
+      final newItem = channelsVM.lostFoundItems.first;
+      expect(newItem.title, 'Found AUST ID Card & Blue Calculator');
+      expect(newItem.type, LostFoundType.found);
+      expect(newItem.authorTag, 'Padma_CSE_4-1_Mirpur10');
+    });
+
+    test('Contact Admin channel: 1-on-1 private messaging with selected Admin', () {
+      final channelsVM = ChannelsViewModel();
+      final studentId = '2023202420252026';
+      final admin1 = channelsVM.admins[0]; // Engr. Rafiqul Islam
+
+      // Student sends private message to Admin 1
+      channelsVM.sendPrivateAdminMessage(
+        studentId: studentId,
+        adminId: admin1.id,
+        text: 'Hello Sir, will Padma 1 stop at Kazipara today?',
+        senderName: 'Padma Student',
+        senderTag: 'Padma_CSE_4-1_Mirpur10',
+        senderRole: 'Student',
+      );
+
+      final convoWithAdmin1 = channelsVM.getAdminConversation(studentId: studentId, adminId: admin1.id);
+      expect(convoWithAdmin1.length, 1);
+      expect(convoWithAdmin1.first.text, contains('stop at Kazipara'));
+
+      // Conversation with Admin 2 is empty/separate
+      final admin2 = channelsVM.admins[1]; // Dr. Shahed Rahman
+      final convoWithAdmin2 = channelsVM.getAdminConversation(studentId: studentId, adminId: admin2.id);
+      expect(convoWithAdmin2.isEmpty, true);
+
+      // Admin 1 replies to Student
+      channelsVM.sendPrivateAdminMessage(
+        studentId: studentId,
+        adminId: admin1.id,
+        text: 'Yes, Padma 1 will make a 2-minute halt at Kazipara.',
+        senderName: admin1.name,
+        senderTag: 'Rafiqul_Admin_Staff_Uttara',
         senderRole: 'Transport Admin',
       );
 
-      channelsVM.broadcastDispatchMessage(
-        'bus-1-mirpur',
-        '⏱️ **WAIT NOTICE**: The bus will wait at mirpur 10 untill 12:30',
-        senderName: 'Padma Dispatch Control (Admin)',
-        senderRole: 'Transport Admin',
-      );
-
-      expect(channelsVM.generalMessages.length, initialGeneralCount + 1);
-      expect(channelsVM.generalMessages.last.text, contains('The bus will wait at mirpur 10 untill 12:30'));
-      expect(channelsVM.generalMessages.last.senderRole, 'Transport Admin');
-
-      expect(channelsVM.bus1Messages.length, initialBus1Count + 1);
-      expect(channelsVM.bus1Messages.last.text, contains('The bus will wait at mirpur 10 untill 12:30'));
+      final updatedConvo = channelsVM.getAdminConversation(studentId: studentId, adminId: admin1.id);
+      expect(updatedConvo.length, 2);
+      expect(updatedConvo.last.senderRole, 'Transport Admin');
     });
 
-    test('Supports all client channels in admin portal', () {
+    test('Submit Complain channel: Student submits grievance, visible only to Admin triage', () {
       final channelsVM = ChannelsViewModel();
-      expect(channelsVM.getMessagesForChannel('general'), isNotEmpty);
-      expect(channelsVM.getMessagesForChannel('announcements'), isNotEmpty);
-      expect(channelsVM.getMessagesForChannel('bus-1-mirpur'), isNotEmpty);
-      expect(channelsVM.getMessagesForChannel('bus-2-uttara'), isNotEmpty);
-      expect(channelsVM.getMessagesForChannel('emergency-blood'), isNotEmpty);
-      expect(channelsVM.getMessagesForChannel('ride-share'), isNotEmpty);
+      final initialCount = channelsVM.complaints.length;
+
+      channelsVM.submitComplaint(
+        title: 'AC cooling issue in Padma 1 rear section',
+        body: 'The air conditioning unit in the back 4 rows was not cooling during the 8:00 AM trip.',
+        imageUrl: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957',
+        studentName: 'Padma Student',
+        studentId: '2023202420252026',
+        department: 'CSE',
+        semester: '4-1',
+        email: 'padmaStudent@aust.edu',
+        pickupDestination: 'Mirpur 10',
+      );
+
+      expect(channelsVM.complaints.length, initialCount + 1);
+      final complaint = channelsVM.complaints.first;
+      expect(complaint.title, 'AC cooling issue in Padma 1 rear section');
+      expect(complaint.studentId, '2023202420252026');
+      expect(complaint.department, 'CSE');
+      expect(complaint.semester, '4-1');
+      expect(complaint.pickupDestination, 'Mirpur 10');
+      expect(complaint.email, 'padmaStudent@aust.edu');
+    });
+
+    test('Bus departure and destination arrival trigger live notifications', () {
+      final channelsVM = ChannelsViewModel();
+
+      // Trigger bus journey start
+      channelsVM.triggerBusJourneyStartNotification(
+        busName: 'Padma 1 (Mirpur Route)',
+        route: 'Mirpur 10 to AUST Campus',
+      );
+
+      expect(channelsVM.notifications.any((n) => n.type == NotificationType.journeyStart), true);
+
+      // Trigger destination approach
+      channelsVM.triggerDestinationApproachNotification(
+        busName: 'Padma 1',
+        destination: 'Mirpur 10',
+        etaMinutes: 2,
+      );
+
+      expect(channelsVM.notifications.any((n) => n.type == NotificationType.destinationArrival), true);
     });
   });
 }

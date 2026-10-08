@@ -12,7 +12,7 @@ void main() {
       expect(authVM.isAuthenticated, true);
       expect(authVM.isAdmin, true);
       expect(authVM.currentUser?.role, UserRole.admin);
-      expect(authVM.currentUser?.name, 'AUST Transport Admin');
+      expect(authVM.currentUser?.name, 'Engr. Rafiqul Islam');
     });
 
     test('Direct signInAsAdmin triggers admin session', () async {
