@@ -6,12 +6,14 @@ class PadmaTheme {
   static const Color background = Color(0xFF121316);
   static const Color surface = Color(0xFF1F1F23);
   static const Color surfaceElevated = Color(0xFF292A2D);
+  static const Color surfaceLight = Color(0xFF292A2D);
   static const Color surfaceHighest = Color(0xFF343538);
   static const Color surfaceLowest = Color(0xFF0D0E11);
   static const Color borderLine = Color(0xFF3F4147);
 
   // Accents
   static const Color primaryTeal = Color(0xFF14B8A6);
+  static const Color primary = Color(0xFF14B8A6);
   static const Color primaryTealContainer = Color(0xFF00423B);
   static const Color onPrimary = Color(0xFF003731);
   static const Color busAmber = Color(0xFFEE9800);

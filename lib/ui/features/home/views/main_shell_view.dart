@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme.dart';
+import '../../auth/view_models/auth_view_model.dart';
 import '../../tracker/views/tracker_view.dart';
 import '../../channels/views/general_chat_view.dart';
 import '../../channels/views/bus_telemetry_chat_view.dart';
@@ -17,7 +19,7 @@ class MainShellView extends StatefulWidget {
 
 class _MainShellViewState extends State<MainShellView> {
   int _currentIndex = 0;
-  String _activeChannel = 'general';
+  String _activeChannel = 'rules-and-regulation';
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   void _openDrawer() {
@@ -37,28 +39,43 @@ class _MainShellViewState extends State<MainShellView> {
     switch (_currentIndex) {
       case 0:
         return TrackerView(
-          onOpenGeneralChat: () => _onSelectChannel(1, 'general'),
+          onOpenGeneralChat: () => _onSelectChannel(1, 'rules-and-regulation'),
         );
       case 1:
-        if (_activeChannel == 'bus-1-mirpur' || _activeChannel == 'bus-2-uttara') {
-          return BusTelemetryChatView(onOpenDrawer: _openDrawer);
+        if (_activeChannel == 'padma-1' || _activeChannel == 'padma-2' || _activeChannel == 'bus-1-mirpur' || _activeChannel == 'bus-2-uttara') {
+          return BusTelemetryChatView(
+            onOpenDrawer: _openDrawer,
+            activeChannel: _activeChannel,
+          );
         }
-        return GeneralChatView(onOpenDrawer: _openDrawer);
+        return GeneralChatView(
+          onOpenDrawer: _openDrawer,
+          activeChannel: _activeChannel,
+        );
       case 2:
-        return RequestsView(onOpenDrawer: _openDrawer);
+        return RequestsView(
+          onOpenDrawer: _openDrawer,
+          activeSubTab: _activeChannel,
+        );
       case 3:
         return const NotificationsView();
       case 4:
         return const ProfileView();
       default:
         return TrackerView(
-          onOpenGeneralChat: () => _onSelectChannel(1, 'general'),
+          onOpenGeneralChat: () => _onSelectChannel(1, 'rules-and-regulation'),
         );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authVM = context.watch<AuthViewModel>();
+    final user = authVM.currentUser;
+    final initials = user != null && user.name.isNotEmpty
+        ? user.name.trim().split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join().toUpperCase()
+        : 'PS';
+
     return Scaffold(
       key: _scaffoldKey,
       drawer: ChannelDrawer(
@@ -67,6 +84,8 @@ class _MainShellViewState extends State<MainShellView> {
       ),
       appBar: _currentIndex == 0
           ? AppBar(
+              backgroundColor: PadmaTheme.surface,
+              elevation: 0,
               leading: IconButton(
                 icon: const Icon(Icons.menu_rounded),
                 onPressed: _openDrawer,
@@ -79,7 +98,10 @@ class _MainShellViewState extends State<MainShellView> {
                       color: PadmaTheme.primaryTealContainer,
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Text('PADMA', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: PadmaTheme.primaryTeal)),
+                    child: const Text(
+                      'PADMA',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: PadmaTheme.primaryTeal),
+                    ),
                   ),
                   const SizedBox(width: 8),
                   const Text('AUST Live Transit', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
@@ -104,8 +126,11 @@ class _MainShellViewState extends State<MainShellView> {
                       color: PadmaTheme.primaryTeal,
                       shape: BoxShape.circle,
                     ),
-                    child: const Center(
-                      child: Text('RH', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: PadmaTheme.onPrimary)),
+                    child: Center(
+                      child: Text(
+                        initials,
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: PadmaTheme.onPrimary),
+                      ),
                     ),
                   ),
                 ),

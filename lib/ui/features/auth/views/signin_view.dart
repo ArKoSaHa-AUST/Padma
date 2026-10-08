@@ -12,8 +12,8 @@ class SignInView extends StatefulWidget {
 }
 
 class _SignInViewState extends State<SignInView> {
-  final _studentIdController = TextEditingController(text: '20210104052');
-  final _passwordController = TextEditingController(text: '••••••••');
+  final _studentIdController = TextEditingController();
+  final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -103,7 +103,31 @@ class _SignInViewState extends State<SignInView> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
+
+                  // Session Expired Banner if any
+                  if (authVM.sessionExpiredMessage != null)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: PadmaTheme.urgentRedContainer.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: PadmaTheme.urgentRed.withValues(alpha: 0.5)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.timer_off_rounded, color: PadmaTheme.urgentRed, size: 20),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              authVM.sessionExpiredMessage!,
+                              style: const TextStyle(fontSize: 12, color: PadmaTheme.urgentRed, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
 
                   // Auth Card
                   Container(
@@ -173,9 +197,9 @@ class _SignInViewState extends State<SignInView> {
                           ),
                           const SizedBox(height: 20),
 
-                          // Student ID field
+                          // Student ID / Email field
                           const Text(
-                            'Institutional Student ID / Webmail',
+                            'Institutional Email or Student ID',
                             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: PadmaTheme.textSecondary),
                           ),
                           const SizedBox(height: 6),
@@ -185,7 +209,7 @@ class _SignInViewState extends State<SignInView> {
                             decoration: InputDecoration(
                               filled: true,
                               fillColor: PadmaTheme.surfaceElevated,
-                              hintText: 'e.g. 20210104052',
+                              hintText: 'e.g. padmaStudent@aust.edu or ID',
                               hintStyle: const TextStyle(color: PadmaTheme.textMuted, fontSize: 13),
                               prefixIcon: const Icon(Icons.school_outlined, size: 20, color: PadmaTheme.textMuted),
                               border: OutlineInputBorder(
@@ -202,10 +226,11 @@ class _SignInViewState extends State<SignInView> {
                               ),
                               contentPadding: const EdgeInsets.symmetric(vertical: 14),
                             ),
+                            validator: (v) => (v == null || v.trim().isEmpty) ? 'Please enter your email or student ID' : null,
                           ),
                           const SizedBox(height: 16),
 
-                          // Password field
+                          // Password field with fixed Show Password toggle
                           const Text(
                             'Password',
                             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: PadmaTheme.textSecondary),
@@ -218,16 +243,19 @@ class _SignInViewState extends State<SignInView> {
                             decoration: InputDecoration(
                               filled: true,
                               fillColor: PadmaTheme.surfaceElevated,
-                              hintText: 'Enter password',
+                              hintText: 'Enter your password',
                               hintStyle: const TextStyle(color: PadmaTheme.textMuted, fontSize: 13),
                               prefixIcon: const Icon(Icons.lock_outline, size: 20, color: PadmaTheme.textMuted),
                               suffixIcon: IconButton(
+                                tooltip: authVM.isPasswordVisible ? 'Hide password' : 'Show password',
                                 icon: Icon(
                                   authVM.isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-                                  size: 18,
-                                  color: PadmaTheme.textMuted,
+                                  size: 20,
+                                  color: authVM.isPasswordVisible ? PadmaTheme.primaryTeal : PadmaTheme.textMuted,
                                 ),
-                                onPressed: authVM.togglePasswordVisibility,
+                                onPressed: () {
+                                  authVM.togglePasswordVisibility();
+                                },
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -243,10 +271,11 @@ class _SignInViewState extends State<SignInView> {
                               ),
                               contentPadding: const EdgeInsets.symmetric(vertical: 14),
                             ),
+                            validator: (v) => (v == null || v.isEmpty) ? 'Please enter your password' : null,
                           ),
                           const SizedBox(height: 12),
 
-                          // Remember & Forgot
+                          // Remember & Forgot Password
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -255,14 +284,14 @@ class _SignInViewState extends State<SignInView> {
                                 children: [
                                   Icon(Icons.check_circle_rounded, size: 16, color: PadmaTheme.primaryTeal),
                                   SizedBox(width: 6),
-                                  Text('Keep signed in', style: TextStyle(fontSize: 12, color: PadmaTheme.textSecondary)),
+                                  Text('2-Hour Session', style: TextStyle(fontSize: 12, color: PadmaTheme.textSecondary)),
                                 ],
                               ),
                               Flexible(
                                 child: TextButton(
                                   onPressed: () {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Password reset link sent to institutional webmail.')),
+                                      const SnackBar(content: Text('Password reset instructions sent to AUST institutional webmail.')),
                                     );
                                   },
                                   style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(50, 30)),
@@ -285,7 +314,17 @@ class _SignInViewState extends State<SignInView> {
                               onPressed: authVM.isLoading
                                   ? null
                                   : () async {
-                                      await authVM.signIn(_studentIdController.text, _passwordController.text);
+                                      if (_formKey.currentState?.validate() ?? false) {
+                                        final success = await authVM.signIn(_studentIdController.text, _passwordController.text);
+                                        if (!success && mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Invalid credentials. For testing use padmaStudent@aust.edu or 2023202420252026 / Padma@123'),
+                                              backgroundColor: PadmaTheme.urgentRed,
+                                            ),
+                                          );
+                                        }
+                                      }
                                     },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: PadmaTheme.primaryTeal,
@@ -304,7 +343,7 @@ class _SignInViewState extends State<SignInView> {
                                   : const Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        Text('Enter Padma Transit', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                                        Text('Sign In', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                                         SizedBox(width: 8),
                                         Icon(Icons.arrow_forward_rounded, size: 18),
                                       ],
@@ -317,67 +356,9 @@ class _SignInViewState extends State<SignInView> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Admin Portal Quick Fill Button
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF8B5CF6).withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFF8B5CF6).withValues(alpha: 0.4)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.admin_panel_settings_rounded, color: Color(0xFF8B5CF6), size: 20),
-                        const SizedBox(width: 10),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('AUST Admin Portal Access', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF8B5CF6))),
-                              Text('admin@padma.com • Padma@123', style: TextStyle(fontSize: 10, color: PadmaTheme.textMuted)),
-                            ],
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            _studentIdController.text = 'admin@padma.com';
-                            _passwordController.text = 'Padma@123';
-                            authVM.signInAsAdmin();
-                          },
-                          style: TextButton.styleFrom(
-                            backgroundColor: const Color(0xFF8B5CF6),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: const Text('Admin Login', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Guest Access Button
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      authVM.continueAsGuest();
-                    },
-                    icon: const Icon(Icons.map_outlined, size: 18, color: PadmaTheme.textSecondary),
-                    label: const Text(
-                      'Continue as Guest (Telemetry Only)',
-                      style: TextStyle(fontSize: 13, color: PadmaTheme.textSecondary, fontWeight: FontWeight.w500),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: PadmaTheme.borderLine),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
                   const Center(
                     child: Text(
-                      'Verified AUST credentials required for transit alerts and chat.',
+                      'AUST institutional email required for transit alerts and chat.',
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 11, color: PadmaTheme.textMuted),
                     ),

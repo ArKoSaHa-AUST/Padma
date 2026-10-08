@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme.dart';
-import '../../admin/views/admin_portal_view.dart';
+import '../../auth/view_models/auth_view_model.dart';
 
 class ChannelDrawer extends StatelessWidget {
   final Function(int tabIndex, String? channelName) onSelectChannel;
@@ -14,6 +15,9 @@ class ChannelDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authVM = context.watch<AuthViewModel>();
+    final user = authVM.currentUser;
+
     return Drawer(
       backgroundColor: PadmaTheme.surfaceLowest,
       child: SafeArea(
@@ -44,11 +48,11 @@ class ChannelDrawer extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'AUST Community',
+                          'Padma — AUST',
                           style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: PadmaTheme.textPrimary),
                         ),
                         Text(
-                          '248 Students Online',
+                          'Ahsanullah University Bus Hub',
                           style: TextStyle(fontSize: 11, color: PadmaTheme.successGreen, fontWeight: FontWeight.w500),
                         ),
                       ],
@@ -66,19 +70,25 @@ class ChannelDrawer extends StatelessWidget {
                   _buildSectionHeader('CAMPUS CHANNELS'),
                   _buildChannelTile(
                     context,
-                    name: 'general',
-                    icon: Icons.tag_rounded,
-                    isActive: activeChannel == 'general',
+                    name: 'Rules and Regulation',
+                    channelKey: 'rules-and-regulation',
+                    icon: Icons.gavel_rounded,
+                    isActive: activeChannel == 'rules-and-regulation' || activeChannel == 'general',
+                    badge: 'ADMIN ONLY',
+                    badgeColor: PadmaTheme.primaryTeal,
                     onTap: () {
                       Navigator.pop(context);
-                      onSelectChannel(1, 'general');
+                      onSelectChannel(1, 'rules-and-regulation');
                     },
                   ),
                   _buildChannelTile(
                     context,
                     name: 'announcements',
+                    channelKey: 'announcements',
                     icon: Icons.campaign_rounded,
                     isActive: activeChannel == 'announcements',
+                    badge: 'ADMIN ONLY',
+                    badgeColor: const Color(0xFF8B5CF6),
                     onTap: () {
                       Navigator.pop(context);
                       onSelectChannel(1, 'announcements');
@@ -89,24 +99,28 @@ class ChannelDrawer extends StatelessWidget {
                   _buildSectionHeader('BUS LIVE TELEMETRY'),
                   _buildChannelTile(
                     context,
-                    name: 'bus-1-mirpur',
-                    icon: Icons.alt_route_rounded,
-                    isActive: activeChannel == 'bus-1-mirpur',
+                    name: 'Padma 1 (Mirpur Route)',
+                    channelKey: 'padma-1',
+                    icon: Icons.directions_bus_rounded,
+                    isActive: activeChannel == 'padma-1' || activeChannel == 'bus-1-mirpur',
                     badge: 'LIVE',
                     badgeColor: PadmaTheme.successGreen,
                     onTap: () {
                       Navigator.pop(context);
-                      onSelectChannel(1, 'bus-1-mirpur');
+                      onSelectChannel(1, 'padma-1');
                     },
                   ),
                   _buildChannelTile(
                     context,
-                    name: 'bus-2-uttara',
-                    icon: Icons.alt_route_rounded,
-                    isActive: activeChannel == 'bus-2-uttara',
+                    name: 'Padma 2 (Uttara Route)',
+                    channelKey: 'padma-2',
+                    icon: Icons.directions_bus_rounded,
+                    isActive: activeChannel == 'padma-2' || activeChannel == 'bus-2-uttara',
+                    badge: 'LIVE',
+                    badgeColor: PadmaTheme.successGreen,
                     onTap: () {
                       Navigator.pop(context);
-                      onSelectChannel(1, 'bus-2-uttara');
+                      onSelectChannel(1, 'padma-2');
                     },
                   ),
                   const SizedBox(height: 16),
@@ -114,90 +128,110 @@ class ChannelDrawer extends StatelessWidget {
                   _buildSectionHeader('STUDENT ASSISTANCE'),
                   _buildChannelTile(
                     context,
-                    name: 'emergency-blood',
+                    name: 'Blood Request',
+                    channelKey: 'blood-request',
                     icon: Icons.bloodtype_rounded,
                     iconColor: PadmaTheme.urgentRed,
-                    isActive: activeChannel == 'emergency-blood',
-                    badge: '3 URGENT',
+                    isActive: activeChannel == 'blood-request' || activeChannel == 'emergency-blood',
+                    badge: 'POST / DONATE',
                     badgeColor: PadmaTheme.urgentRed,
                     onTap: () {
                       Navigator.pop(context);
-                      onSelectChannel(2, 'requests');
+                      onSelectChannel(2, 'blood-request');
                     },
                   ),
                   _buildChannelTile(
                     context,
-                    name: 'ride-share',
-                    icon: Icons.two_wheeler_rounded,
-                    isActive: activeChannel == 'ride-share',
+                    name: 'Lost and found',
+                    channelKey: 'lost-found',
+                    icon: Icons.search_rounded,
+                    iconColor: PadmaTheme.busAmber,
+                    isActive: activeChannel == 'lost-found',
                     onTap: () {
                       Navigator.pop(context);
-                      onSelectChannel(2, 'requests');
+                      onSelectChannel(2, 'lost-found');
+                    },
+                  ),
+                  _buildChannelTile(
+                    context,
+                    name: 'Contact Admin (1-on-1)',
+                    channelKey: 'contact-admin',
+                    icon: Icons.support_agent_rounded,
+                    iconColor: const Color(0xFF8B5CF6),
+                    isActive: activeChannel == 'contact-admin',
+                    badge: 'PRIVATE',
+                    badgeColor: const Color(0xFF8B5CF6),
+                    onTap: () {
+                      Navigator.pop(context);
+                      onSelectChannel(2, 'contact-admin');
                     },
                   ),
                   const SizedBox(height: 16),
 
-                  _buildSectionHeader('ADMINISTRATION'),
+                  _buildSectionHeader('GRIEVANCE & FEEDBACK'),
                   _buildChannelTile(
                     context,
-                    name: 'admin-portal',
-                    icon: Icons.admin_panel_settings_rounded,
-                    iconColor: const Color(0xFF8B5CF6),
-                    isActive: false,
-                    badge: 'STAFF',
-                    badgeColor: const Color(0xFF8B5CF6),
+                    name: 'Submit Complain',
+                    channelKey: 'submit-complain',
+                    icon: Icons.description_outlined,
+                    iconColor: PadmaTheme.primaryTeal,
+                    isActive: activeChannel == 'submit-complain',
+                    badge: 'DOCS FORM',
+                    badgeColor: PadmaTheme.primaryTeal,
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const AdminPortalView()),
-                      );
+                      onSelectChannel(2, 'submit-complain');
                     },
                   ),
                 ],
               ),
             ),
 
-            // User Bottom Pill in Drawer
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: const BoxDecoration(
-                color: PadmaTheme.surface,
-                border: Border(top: BorderSide(color: PadmaTheme.borderLine)),
+            // User Info Footer
+            if (user != null)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: const BoxDecoration(
+                  color: PadmaTheme.surface,
+                  border: Border(top: BorderSide(color: PadmaTheme.borderLine)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: const BoxDecoration(
+                        color: PadmaTheme.primaryTeal,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          user.name.isNotEmpty ? user.name.substring(0, 1).toUpperCase() : 'U',
+                          style: const TextStyle(fontWeight: FontWeight.w800, color: PadmaTheme.onPrimary, fontSize: 13),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user.name,
+                            style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: PadmaTheme.textPrimary),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            '@${user.chatTag}',
+                            style: const TextStyle(fontSize: 10, color: PadmaTheme.primaryTeal, fontFamily: 'monospace'),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: const BoxDecoration(
-                      color: PadmaTheme.primaryTeal,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Center(
-                      child: Text('RH', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: PadmaTheme.onPrimary)),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Rashedul Hasan', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: PadmaTheme.textPrimary)),
-                        Text('CSE • Fall 2021', style: TextStyle(fontSize: 11, color: PadmaTheme.textMuted)),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.settings_outlined, size: 18, color: PadmaTheme.textSecondary),
-                    onPressed: () {
-                      Navigator.pop(context);
-                      onSelectChannel(3, null);
-                    },
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),
@@ -206,10 +240,15 @@ class ChannelDrawer extends StatelessWidget {
 
   Widget _buildSectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.only(left: 8, bottom: 6, top: 4),
       child: Text(
         title,
-        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: PadmaTheme.textMuted, letterSpacing: 0.8),
+        style: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: PadmaTheme.textMuted,
+          letterSpacing: 0.8,
+        ),
       ),
     );
   }
@@ -217,43 +256,38 @@ class ChannelDrawer extends StatelessWidget {
   Widget _buildChannelTile(
     BuildContext context, {
     required String name,
+    required String channelKey,
     required IconData icon,
-    required bool isActive,
-    required VoidCallback onTap,
     Color? iconColor,
+    required bool isActive,
     String? badge,
     Color? badgeColor,
+    required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        margin: const EdgeInsets.only(bottom: 2),
-        decoration: BoxDecoration(
-          color: isActive ? PadmaTheme.surfaceElevated : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 3),
+      decoration: BoxDecoration(
+        color: isActive ? PadmaTheme.surfaceElevated : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: ListTile(
+        dense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+        leading: Icon(icon, size: 18, color: iconColor ?? (isActive ? PadmaTheme.primaryTeal : PadmaTheme.textMuted)),
+        title: Text(
+          name,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+            color: isActive ? PadmaTheme.textPrimary : PadmaTheme.textSecondary,
+          ),
         ),
-        child: Row(
-          children: [
-            Icon(icon, size: 18, color: iconColor ?? (isActive ? PadmaTheme.textPrimary : PadmaTheme.textMuted)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                name,
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                  color: isActive ? PadmaTheme.textPrimary : PadmaTheme.textSecondary,
-                ),
-              ),
-            ),
-            if (badge != null)
-              Container(
+        trailing: badge != null
+            ? Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: (badgeColor ?? PadmaTheme.primaryTeal).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   badge,
@@ -263,9 +297,9 @@ class ChannelDrawer extends StatelessWidget {
                     color: badgeColor ?? PadmaTheme.primaryTeal,
                   ),
                 ),
-              ),
-          ],
-        ),
+              )
+            : null,
+        onTap: onTap,
       ),
     );
   }

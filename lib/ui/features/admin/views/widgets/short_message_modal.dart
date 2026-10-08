@@ -679,7 +679,7 @@ class _ShortMessageModalState extends State<ShortMessageModal> {
                     MaterialPageRoute(
                       builder: (_) => BusTelemetryChatView(
                         onOpenDrawer: () => Navigator.pop(context),
-                        channelId: busChannel,
+                        activeChannel: busChannel,
                       ),
                     ),
                   );

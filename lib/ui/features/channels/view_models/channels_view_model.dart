@@ -1,395 +1,688 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import '../../../../data/models/blood_request_model.dart';
 import '../../../../data/models/chat_message.dart';
-import '../../../../data/models/emergency_request.dart';
+import '../../../../data/models/complaint_model.dart';
+import '../../../../data/models/lost_found_model.dart';
+import '../../../../data/models/notification_item.dart';
 import '../../../../data/services/mock_data_service.dart';
 import '../../../../data/services/supabase_service.dart';
 
 class ChannelsViewModel extends ChangeNotifier {
-  final List<ChatMessage> _generalMessages = MockDataService.getGeneralChatMessages();
-  final List<ChatMessage> _bus1Messages = MockDataService.getBus1TelemetryMessages();
-  final List<ChatMessage> _bus2Messages = MockDataService.getBus2TelemetryMessages();
-  final List<ChatMessage> _announcementsMessages = [
+  final List<ChatMessage> _rulesMessages = MockDataService.getRulesAndRegulationsMessages();
+  final List<ChatMessage> _announcementsMessages = MockDataService.getAnnouncementsMessages();
+  final List<ChatMessage> _padma1Messages = MockDataService.getBus1TelemetryMessages();
+  final List<ChatMessage> _padma2Messages = MockDataService.getBus2TelemetryMessages();
+
+  // Contact Admin 1-on-1 Messages (Keyed by conversation or stored with recipientId)
+  final List<ChatMessage> _contactAdminMessages = [
     ChatMessage(
-      id: 'ann_chat_1',
-      senderName: 'Padma Transport Office',
+      id: 'dm_1',
+      senderName: 'Engr. Rafiqul Islam (Admin 1)',
       senderRole: 'Transport Admin',
-      avatarInitials: 'ADM',
-      badgeText: 'OFFICIAL NOTICE',
-      text: '📢 **Campus Departure Advisory**: Afternoon trips for all routes will depart strictly from Main Gate at 01:45 PM.',
-      timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-      isTelemetry: true,
-      reactions: [
-        ChatReaction(emoji: '👍', count: 32, isUserReacted: true),
-        ChatReaction(emoji: '🚌', count: 18),
-      ],
-    ),
-    ChatMessage(
-      id: 'ann_chat_2',
-      senderName: 'Padma Dispatch Control',
-      senderRole: 'Transport Admin',
-      avatarInitials: 'ADM',
-      badgeText: 'WEATHER ALERT',
-      text: '🌧️ **Weather Alert**: Pre-monsoon showers expected along Mirpur Corridor. Drivers advised to maintain 35km/h safety limit.',
-      timestamp: DateTime.now().subtract(const Duration(hours: 4)),
-      isTelemetry: true,
-      reactions: [
-        ChatReaction(emoji: '☔', count: 14),
-      ],
+      senderTag: 'Rafiq_Transport_Staff_Campus',
+      avatarInitials: 'RI',
+      badgeText: 'ADMIN 1',
+      text: 'Hello! I am Engr. Rafiqul Islam, Transport & Fleet Officer. How can I assist you with bus routes or transit issues today?',
+      timestamp: DateTime.now().subtract(const Duration(hours: 1)),
+      recipientId: 'user_student_padma',
     ),
   ];
-  final List<ChatMessage> _emergencyBloodMessages = [
-    ChatMessage(
+
+  // Blood Requests List
+  final List<BloodRequestModel> _bloodRequests = [
+    BloodRequestModel(
       id: 'bld_1',
-      senderName: 'Siam Chowdhury (CSE 3.1)',
-      senderRole: 'Verified Student',
-      avatarInitials: 'SC',
-      badgeText: 'URGENT O+',
-      text: '🔴 **URGENT**: Need 2 Bags of O+ Blood for emergency surgery at Dhaka Medical College Hospital. Contact: 01711-889900.',
-      timestamp: DateTime.now().subtract(const Duration(minutes: 35)),
-      reactions: [
-        ChatReaction(emoji: '🩸', count: 19, isUserReacted: true),
-        ChatReaction(emoji: '🙏', count: 8),
-      ],
+      title: 'Urgent O+ Blood Needed for Open Heart Surgery',
+      bloodGroup: 'O+',
+      hospitalName: 'National Heart Foundation, Mirpur-2',
+      patientDetails: 'Father of AUST CSE student, scheduled for bypass surgery tomorrow morning.',
+      messageBody: '2 units of fresh whole blood required. Attendant available at hospital cabin 402.',
+      requiredDate: 'Tomorrow 08:00 AM',
+      contactNumber: '+880 1711-223344',
+      emailAddress: 'padmaStudent@aust.edu',
+      extraInformation: 'Donor will be picked up and dropped off if needed.',
+      requesterName: 'Padma Student',
+      requesterTag: 'Padma_CSE_4-1_Mirpur10',
+      createdAt: DateTime.now().subtract(const Duration(minutes: 40)),
+    ),
+    BloodRequestModel(
+      id: 'bld_2',
+      title: 'Emergency B+ Blood for Accident Emergency',
+      bloodGroup: 'B+',
+      hospitalName: 'Dhaka Medical College Hospital (DMCH)',
+      patientDetails: 'Emergency Ward 14, Bed 8',
+      messageBody: '1 unit required immediately for blood transfusion.',
+      requiredDate: 'Today ASAP',
+      contactNumber: '+880 1822-998877',
+      emailAddress: 'tanvir.cse@aust.edu',
+      extraInformation: 'Patient relative at hospital reception.',
+      requesterName: 'Tanvir Ahmed',
+      requesterTag: 'Tanvir_CSE_4-1_Mirpur10',
+      createdAt: DateTime.now().subtract(const Duration(hours: 2)),
     ),
   ];
-  final List<ChatMessage> _rideShareMessages = [
-    ChatMessage(
-      id: 'rs_1',
-      senderName: 'Nabil Hasan (EEE 4.2)',
-      senderRole: 'Student Rider',
-      avatarInitials: 'NH',
-      badgeText: 'CARPOOL',
-      text: '🚗 Leaving Mirpur DOHS towards AUST Campus at 7:30 AM tomorrow. 2 seats available in private sedan. DM to join.',
-      timestamp: DateTime.now().subtract(const Duration(minutes: 50)),
-      reactions: [
-        ChatReaction(emoji: '🚗', count: 6),
-      ],
+
+  // Lost & Found Items List
+  final List<LostFoundModel> _lostFoundItems = [
+    LostFoundModel(
+      id: 'lf_1',
+      title: 'Lost Black Leather Wallet in Padma 1',
+      description: 'Contains AUST Student ID card and blue umbrella. Left on upper deck 3rd row.',
+      type: LostFoundType.lost,
+      location: 'Padma 1 (Mirpur Route)',
+      contact: '+880 1711-000000',
+      authorName: 'Padma Student',
+      authorTag: 'Padma_CSE_4-1_Mirpur10',
+      createdAt: DateTime.now().subtract(const Duration(hours: 3)),
+    ),
+    LostFoundModel(
+      id: 'lf_2',
+      title: 'Found Casio Scientific Calculator (fx-991EX)',
+      description: 'Found on seat 5B of Padma 2. Handed over to driver Md. Al-Amin.',
+      type: LostFoundType.found,
+      location: 'Padma 2 (Uttara Route)',
+      contact: '+880 1812-345678',
+      authorName: 'Dr. Shahed Rahman',
+      authorTag: 'Shahed_StudentAffairs_Official_Campus',
+      createdAt: DateTime.now().subtract(const Duration(hours: 5)),
     ),
   ];
-  final List<EmergencyRequest> _requests = MockDataService.getEmergencyRequests();
-  String _selectedRequestFilter = 'all';
+
+  // Complaints List (Only visible to Admin)
+  final List<ComplaintModel> _complaints = [
+    ComplaintModel(
+      id: 'cmp_1',
+      title: 'AC cooling issue in Padma 1 upper deck',
+      body: 'The air conditioning vents on the upper deck row 4 were not functioning during afternoon trip.',
+      studentName: 'Padma Student',
+      studentId: '2023202420252026',
+      department: 'CSE',
+      semester: '4-1',
+      email: 'padmaStudent@aust.edu',
+      pickupDestination: 'Mirpur 10',
+      submittedAt: DateTime.now().subtract(const Duration(hours: 4)),
+      status: 'Under Review',
+    ),
+  ];
+
+  // Dynamic Notifications List
+  final List<NotificationItem> _notifications = [
+    NotificationItem(
+      id: 'notif_bus1_start',
+      title: 'Padma 1 Journey Started',
+      description: 'Bus 1 (Mirpur Route) has started its morning journey from Mirpur 12 Bus Stand.',
+      timestamp: DateTime.now().subtract(const Duration(minutes: 18)),
+      type: NotificationType.transit,
+      icon: Icons.directions_bus_rounded,
+      color: const Color(0xFF14B8A6),
+      relatedChannel: 'padma-1',
+    ),
+    NotificationItem(
+      id: 'notif_bus1_near',
+      title: 'Bus Almost Reached Your Destination',
+      description: 'Padma 1 is almost reached to your destination (Mirpur 10 - arriving in ~2 mins!).',
+      timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
+      type: NotificationType.transit,
+      icon: Icons.near_me_rounded,
+      color: const Color(0xFFF59E0B),
+      relatedChannel: 'padma-1',
+    ),
+    NotificationItem(
+      id: 'notif_bus2_start',
+      title: 'Padma 2 Journey Started',
+      description: 'Bus 2 (Uttara Route) has started the journey from Uttara House Building.',
+      timestamp: DateTime.now().subtract(const Duration(minutes: 25)),
+      type: NotificationType.transit,
+      icon: Icons.directions_bus_rounded,
+      color: const Color(0xFF14B8A6),
+      relatedChannel: 'padma-2',
+    ),
+    NotificationItem(
+      id: 'notif_ann_1',
+      title: 'Campus Midterm Transport Schedule',
+      description: 'Transport Admin announced: Morning trips will operate 15 mins earlier starting Sunday.',
+      timestamp: DateTime.now().subtract(const Duration(hours: 3)),
+      type: NotificationType.announcement,
+      icon: Icons.campaign_rounded,
+      color: const Color(0xFF8B5CF6),
+      relatedChannel: 'announcements',
+    ),
+    NotificationItem(
+      id: 'notif_rules_1',
+      title: 'Rules & Regulations Updated',
+      description: 'Admin published: Physical or digital Padma Verified pass mandatory upon boarding.',
+      timestamp: DateTime.now().subtract(const Duration(days: 1)),
+      type: NotificationType.rules,
+      icon: Icons.gavel_rounded,
+      color: const Color(0xFF3B82F6),
+      relatedChannel: 'rules-and-regulation',
+    ),
+    NotificationItem(
+      id: 'notif_mention_1',
+      title: 'You were mentioned in Padma 1',
+      description: 'Tanvir_CSE_4-1_Mirpur10: "@Padma_CSE_4-1_Mirpur10 you can board smoothly!"',
+      timestamp: DateTime.now().subtract(const Duration(minutes: 10)),
+      type: NotificationType.mention,
+      icon: Icons.alternate_email_rounded,
+      color: const Color(0xFFEF4444),
+      relatedChannel: 'padma-1',
+    ),
+  ];
+
+  String _selectedContactAdminId = 'admin_1'; // 'admin_1' or 'admin_2'
 
   StreamSubscription<List<Map<String, dynamic>>>? _messagesSub;
-  StreamSubscription<List<Map<String, dynamic>>>? _requestsSub;
 
-  List<ChatMessage> get generalMessages => _generalMessages;
-  List<ChatMessage> get bus1Messages => _bus1Messages;
-  List<ChatMessage> get bus2Messages => _bus2Messages;
+  List<ChatMessage> get rulesMessages => _rulesMessages;
+  List<ChatMessage> get generalMessages => _rulesMessages; // For backwards compatibility
   List<ChatMessage> get announcementsMessages => _announcementsMessages;
-  List<ChatMessage> get emergencyBloodMessages => _emergencyBloodMessages;
-  List<ChatMessage> get rideShareMessages => _rideShareMessages;
+  List<ChatMessage> get announcementMessages => _announcementsMessages;
+  List<ChatMessage> get padma1Messages => _padma1Messages;
+  List<ChatMessage> get bus1Messages => _padma1Messages;
+  List<ChatMessage> get padma2Messages => _padma2Messages;
+  List<ChatMessage> get bus2Messages => _padma2Messages;
+  List<BloodRequestModel> get bloodRequests => _bloodRequests;
+  List<LostFoundModel> get lostFoundItems => _lostFoundItems;
+  List<ComplaintModel> get complaints => _complaints;
+  List<NotificationItem> get notifications => _notifications;
+  String get selectedContactAdminId => _selectedContactAdminId;
 
-  ChannelsViewModel() {
-    _initSupabaseRealtimeStreams();
-  }
+  List<({String id, String name, String role, String designation, String tag})> get admins => const [
+    (id: 'admin_1', name: 'Engr. Rafiqul Islam', role: 'Chief Transport Officer', designation: 'Admin 1 (Transport & Fleet Operations)', tag: 'Rafiq_Transport_Staff_Campus'),
+    (id: 'admin_2', name: 'Dr. Shahed Rahman', role: 'Student Affairs Admin', designation: 'Admin 2 (Student Welfare & Grievances)', tag: 'Shahed_StudentAffairs_Official_Campus'),
+  ];
 
-  void _initSupabaseRealtimeStreams() {
-    try {
-      final client = SupabaseService.instance.client;
+  // Backwards compatibility getter for requests
+  List<dynamic> get requests => _bloodRequests;
+  String get selectedRequestFilter => 'all';
 
-      // 1. Messages Realtime Stream
-      _messagesSub = client
-          .from('messages')
-          .stream(primaryKey: ['id'])
-          .order('created_at', ascending: true)
-          .listen((records) {
-        for (final r in records) {
-          final chId = r['channel_id']?.toString() ?? 'general';
-          final targetList = getMessagesForChannel(chId);
-
-          final msgId = r['id']?.toString() ?? '';
-          final reactionsRaw = r['reactions'];
-          final List<ChatReaction> reactions = [];
-          if (reactionsRaw is Map) {
-            reactionsRaw.forEach((k, v) {
-              reactions.add(ChatReaction(emoji: k.toString(), count: (v as num).toInt()));
-            });
-          }
-
-          final chatMsg = ChatMessage(
-            id: msgId,
-            senderName: r['sender_name']?.toString() ?? 'AUST Student',
-            senderRole: r['sender_role']?.toString() == 'admin' ? 'Transport Admin' : 'Verified Student',
-            avatarInitials: (r['sender_name']?.toString().isNotEmpty ?? false)
-                ? r['sender_name'].toString().substring(0, 2).toUpperCase()
-                : 'AU',
-            badgeText: r['badge_text']?.toString(),
-            text: r['text']?.toString() ?? '',
-            timestamp: r['created_at'] != null ? DateTime.parse(r['created_at'].toString()) : DateTime.now(),
-            isTelemetry: r['is_telemetry'] == true,
-            reactions: reactions,
-          );
-
-          final existingIdx = targetList.indexWhere((m) => m.id == msgId);
-          if (existingIdx != -1) {
-            targetList[existingIdx] = chatMsg;
-          } else {
-            targetList.add(chatMsg);
-          }
-        }
-        notifyListeners();
-      }, onError: (err) {
-        debugPrint('[ChannelsViewModel] Messages sub error: $err');
-      });
-
-      // 2. Emergency Requests Realtime Stream
-      _requestsSub = client
-          .from('emergency_requests')
-          .stream(primaryKey: ['id'])
-          .order('created_at', ascending: false)
-          .listen((records) {
-        for (final r in records) {
-          final reqId = r['id']?.toString() ?? '';
-          final typeStr = r['type']?.toString() ?? 'blood';
-          RequestCategory cat = RequestCategory.blood;
-          if (typeStr == 'ride') cat = RequestCategory.ride;
-          if (typeStr == 'notes') cat = RequestCategory.notes;
-          if (typeStr == 'other') cat = RequestCategory.other;
-
-          final urgencyStr = r['urgency']?.toString() ?? 'medium';
-          RequestUrgency urg = RequestUrgency.medium;
-          if (urgencyStr == 'critical') urg = RequestUrgency.critical;
-          if (urgencyStr == 'low') urg = RequestUrgency.low;
-
-          final req = EmergencyRequest(
-            id: reqId,
-            title: r['title']?.toString() ?? '',
-            description: r['description']?.toString() ?? '',
-            patientLocation: r['location']?.toString() ?? 'Campus',
-            bloodGroup: r['blood_group']?.toString() ?? 'A+',
-            category: cat,
-            urgency: urg,
-            contactNumber: r['contact']?.toString() ?? '',
-            postedBy: r['requester_name']?.toString() ?? 'Student',
-            postedAt: r['created_at'] != null ? DateTime.parse(r['created_at'].toString()) : DateTime.now(),
-          );
-
-          final existingIdx = _requests.indexWhere((x) => x.id == reqId);
-          if (existingIdx != -1) {
-            _requests[existingIdx] = req;
-          } else {
-            _requests.insert(0, req);
-          }
-        }
-        notifyListeners();
-      }, onError: (err) {
-        debugPrint('[ChannelsViewModel] Requests sub error: $err');
-      });
-
-    } catch (e) {
-      debugPrint('[ChannelsViewModel] Init realtime error: $e');
-    }
-  }
-
-  List<ChatMessage> getMessagesForChannel(String channelId) {
-    switch (channelId.toLowerCase()) {
-      case 'bus-1-mirpur':
-      case 'bus_1':
-      case 'bus-1':
-        return _bus1Messages;
-      case 'bus-2-uttara':
-      case 'bus_2':
-      case 'bus-2':
-        return _bus2Messages;
-      case 'announcements':
-      case '#announcements':
-        return _announcementsMessages;
-      case 'emergency-blood':
-      case 'blood':
-      case '#emergency-blood':
-        return _emergencyBloodMessages;
-      case 'ride-share':
-      case 'rideshare':
-      case '#ride-share':
-        return _rideShareMessages;
-      case 'general':
-      case '#general':
-      default:
-        return _generalMessages;
-    }
-  }
-
-  List<EmergencyRequest> get requests {
-    if (_selectedRequestFilter == 'blood') {
-      return _requests.where((r) => r.category == RequestCategory.blood).toList();
-    }
-    if (_selectedRequestFilter == 'urgent') {
-      return _requests.where((r) => r.urgency == RequestUrgency.critical).toList();
-    }
-    return _requests;
-  }
-  String get selectedRequestFilter => _selectedRequestFilter;
-
-  void setRequestFilter(String filter) {
-    _selectedRequestFilter = filter;
+  void setRequestFilter(String f) {
     notifyListeners();
   }
 
-  void sendMessageToChannel(
-    String channelId,
-    String text, {
-    String senderName = 'You (Student)',
-    String senderRole = 'Verified Student',
-    String avatarInitials = 'YOU',
-    String? badgeText,
-    bool isTelemetry = false,
-  }) {
-    if (text.trim().isEmpty) return;
-    final msgId = 'msg_${DateTime.now().millisecondsSinceEpoch}';
-    final list = getMessagesForChannel(channelId);
-    list.add(
-      ChatMessage(
-        id: msgId,
-        senderName: senderName,
-        senderRole: senderRole,
-        avatarInitials: avatarInitials,
-        badgeText: badgeText,
-        text: text.trim(),
+  void setSelectedContactAdmin(String adminId) {
+    _selectedContactAdminId = adminId;
+    notifyListeners();
+  }
+
+  List<ChatMessage> getContactAdminMessagesForUser(String userId, String adminId) {
+    return _contactAdminMessages.where((m) {
+      if (adminId == 'admin_1') {
+        return m.senderTag?.contains('Rafiq') == true || m.recipientId == userId || m.senderName.contains('Admin 1');
+      } else {
+        return m.senderTag?.contains('Shahed') == true || m.recipientId == userId || m.senderName.contains('Admin 2');
+      }
+    }).toList();
+  }
+
+  List<ChatMessage> getAdminConversation({required String studentId, required String adminId}) {
+    return _contactAdminMessages.where((m) {
+      if (m.recipientId == adminId && m.senderRole == 'Student') return true;
+      if (m.recipientId == studentId && (adminId == 'admin_1' ? (m.senderName.contains('Rafiq') || m.senderTag?.contains('Rafiq') == true) : (m.senderName.contains('Shahed') || m.senderTag?.contains('Shahed') == true))) return true;
+      return false;
+    }).toList();
+  }
+
+  List<ChatMessage> getMessagesForChannel(String channelKey) {
+    switch (channelKey) {
+      case 'rules-and-regulation':
+      case 'general':
+        return _rulesMessages;
+      case 'announcements':
+        return _announcementsMessages;
+      case 'padma-1':
+      case 'bus-1-mirpur':
+        return _padma1Messages;
+      case 'padma-2':
+      case 'bus-2-uttara':
+        return _padma2Messages;
+      default:
+        return _rulesMessages;
+    }
+  }
+
+  // Post in Rules and Regulation (Admin only)
+  void sendRulesMessage(String text, {String senderName = 'Engr. Rafiqul Islam', String senderTag = 'Rafiq_Transport_Staff_Campus', bool isAdmin = true}) {
+    if (!isAdmin) return;
+    final msg = ChatMessage(
+      id: 'rule_${DateTime.now().millisecondsSinceEpoch}',
+      senderName: senderName,
+      senderRole: 'Transport Admin',
+      senderTag: senderTag,
+      avatarInitials: 'ADM',
+      badgeText: 'POLICY DIRECTIVE',
+      text: text,
+      timestamp: DateTime.now(),
+    );
+    _rulesMessages.add(msg);
+    _notifications.insert(
+      0,
+      NotificationItem(
+        id: 'notif_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'New Rule Published',
+        description: text.replaceAll('*', ''),
         timestamp: DateTime.now(),
-        isTelemetry: isTelemetry,
+        type: NotificationType.rules,
+        icon: Icons.gavel_rounded,
+        color: const Color(0xFF3B82F6),
+        relatedChannel: 'rules-and-regulation',
       ),
     );
     notifyListeners();
-
-    // Persist to Supabase
-    try {
-      final role = senderRole.toLowerCase().contains('admin') ? 'admin' : 'student';
-      SupabaseService.instance.client.from('messages').insert({
-        'id': msgId,
-        'channel_id': channelId,
-        'sender_id': 'user_student_active',
-        'sender_name': senderName,
-        'sender_role': role,
-        'badge_text': badgeText,
-        'text': text.trim(),
-        'is_telemetry': isTelemetry,
-        'reactions': {},
-        'created_at': DateTime.now().toIso8601String(),
-      }).then((_) {}, onError: (e) {
-        debugPrint('[ChannelsViewModel] Error sending to Supabase: $e');
-      });
-    } catch (e) {
-      debugPrint('[ChannelsViewModel] Insert exception: $e');
-    }
   }
 
-  void sendGeneralMessage(String text, {String senderName = 'You (Student)'}) {
-    sendMessageToChannel('general', text, senderName: senderName);
-  }
-
-  void sendBus1Message(String text, {String senderName = 'You (Mirpur Commuter)'}) {
-    sendMessageToChannel(
-      'bus-1-mirpur',
-      text,
+  // Post in Announcements (Admin only)
+  void sendAnnouncementMessage(String text, {String senderName = 'Engr. Rafiqul Islam', String senderTag = 'Rafiq_Transport_Staff_Campus', bool isAdmin = true}) {
+    if (!isAdmin) return;
+    final msg = ChatMessage(
+      id: 'ann_${DateTime.now().millisecondsSinceEpoch}',
       senderName: senderName,
-      senderRole: 'Student Commuter',
-      avatarInitials: 'ME',
+      senderRole: 'Transport Admin',
+      senderTag: senderTag,
+      avatarInitials: 'ADM',
+      badgeText: 'ANNOUNCEMENT',
+      text: text,
+      timestamp: DateTime.now(),
     );
+    _announcementsMessages.add(msg);
+    _notifications.insert(
+      0,
+      NotificationItem(
+        id: 'notif_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'New Announcement',
+        description: text.replaceAll('*', ''),
+        timestamp: DateTime.now(),
+        type: NotificationType.announcement,
+        icon: Icons.campaign_rounded,
+        color: const Color(0xFF8B5CF6),
+        relatedChannel: 'announcements',
+      ),
+    );
+    notifyListeners();
   }
 
-  void sendBus2Message(String text, {String senderName = 'You (Uttara Commuter)'}) {
-    sendMessageToChannel(
-      'bus-2-uttara',
-      text,
-      senderName: senderName,
-      senderRole: 'Student Commuter',
-      avatarInitials: 'ME',
-    );
-  }
-
-  void broadcastDispatchMessage(
-    String channelId,
-    String text, {
-    String senderName = 'Padma Dispatch Control (Admin)',
-    String senderRole = 'Transport Admin',
-    String badgeText = 'OFFICIAL ALERT',
-  }) {
-    sendMessageToChannel(
-      channelId,
-      text,
+  // Send message in Padma 1 (User and Admin both)
+  void sendPadma1Message(String text, {required String senderName, required String senderTag, String senderRole = 'Student'}) {
+    final msg = ChatMessage(
+      id: 'p1_${DateTime.now().millisecondsSinceEpoch}',
       senderName: senderName,
       senderRole: senderRole,
-      badgeText: badgeText,
-      isTelemetry: true,
+      senderTag: senderTag,
+      avatarInitials: senderName.isNotEmpty ? senderName.substring(0, 2).toUpperCase() : 'AU',
+      text: text,
+      timestamp: DateTime.now(),
+    );
+    _padma1Messages.add(msg);
+    _checkForMentionsAndNotify(text, senderTag, 'Padma 1', 'padma-1');
+    notifyListeners();
+  }
+
+  // Send message in Padma 2 (User and Admin both)
+  void sendPadma2Message(String text, {required String senderName, required String senderTag, String senderRole = 'Student'}) {
+    final msg = ChatMessage(
+      id: 'p2_${DateTime.now().millisecondsSinceEpoch}',
+      senderName: senderName,
+      senderRole: senderRole,
+      senderTag: senderTag,
+      avatarInitials: senderName.isNotEmpty ? senderName.substring(0, 2).toUpperCase() : 'AU',
+      text: text,
+      timestamp: DateTime.now(),
+    );
+    _padma2Messages.add(msg);
+    _checkForMentionsAndNotify(text, senderTag, 'Padma 2', 'padma-2');
+    notifyListeners();
+  }
+
+  // Send Private Contact Admin message
+  void sendContactAdminMessage({
+    required String text,
+    required String senderName,
+    required String senderTag,
+    required String adminId,
+    required String studentId,
+  }) {
+    final msg = ChatMessage(
+      id: 'dm_${DateTime.now().millisecondsSinceEpoch}',
+      senderName: senderName,
+      senderRole: 'Student',
+      senderTag: senderTag,
+      avatarInitials: senderName.isNotEmpty ? senderName.substring(0, 2).toUpperCase() : 'ST',
+      text: text,
+      timestamp: DateTime.now(),
+      recipientId: adminId,
+    );
+    _contactAdminMessages.add(msg);
+    notifyListeners();
+
+    // Auto admin acknowledgment simulation
+    Future.delayed(const Duration(seconds: 1), () {
+      final adminReply = ChatMessage(
+        id: 'dm_reply_${DateTime.now().millisecondsSinceEpoch}',
+        senderName: adminId == 'admin_1' ? 'Engr. Rafiqul Islam (Admin 1)' : 'Dr. Shahed Rahman (Admin 2)',
+        senderRole: 'Transport Admin',
+        senderTag: adminId == 'admin_1' ? 'Rafiq_Transport_Staff_Campus' : 'Shahed_StudentAffairs_Official_Campus',
+        avatarInitials: adminId == 'admin_1' ? 'RI' : 'SR',
+        badgeText: adminId == 'admin_1' ? 'ADMIN 1' : 'ADMIN 2',
+        text: 'Thank you for reaching out. We have logged your request and will address it promptly.',
+        timestamp: DateTime.now(),
+        recipientId: studentId,
+      );
+      _contactAdminMessages.add(adminReply);
+      notifyListeners();
+    });
+  }
+
+  // Add Blood Request (Both user and admin)
+  void addBloodRequest({
+    required String title,
+    required String bloodGroup,
+    required String hospitalName,
+    String? patientDetails,
+    String? messageBody,
+    String? requiredDate,
+    required String contactNumber,
+    required String emailAddress,
+    String? extraInformation,
+    required String requesterName,
+    required String requesterTag,
+  }) {
+    final req = BloodRequestModel(
+      id: 'bld_${DateTime.now().millisecondsSinceEpoch}',
+      title: title,
+      bloodGroup: bloodGroup,
+      hospitalName: hospitalName,
+      patientDetails: patientDetails,
+      messageBody: messageBody,
+      requiredDate: requiredDate,
+      contactNumber: contactNumber,
+      emailAddress: emailAddress,
+      extraInformation: extraInformation,
+      requesterName: requesterName,
+      requesterTag: requesterTag,
+      createdAt: DateTime.now(),
+    );
+    _bloodRequests.insert(0, req);
+    _notifications.insert(
+      0,
+      NotificationItem(
+        id: 'notif_bld_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'Emergency $bloodGroup Blood Needed',
+        description: '$title at $hospitalName. Contact: $contactNumber',
+        timestamp: DateTime.now(),
+        type: NotificationType.blood,
+        icon: Icons.bloodtype_rounded,
+        color: const Color(0xFFEF4444),
+        relatedChannel: 'blood-request',
+      ),
+    );
+    notifyListeners();
+  }
+
+  void postBloodRequest({
+    required String title,
+    required String bloodGroup,
+    required String hospitalName,
+    String? patientDetails,
+    String? messageBody,
+    String? requiredDate,
+    required String contactNumber,
+    required String email,
+    String? extraInfo,
+    required String authorName,
+    required String authorTag,
+  }) {
+    addBloodRequest(
+      title: title,
+      bloodGroup: bloodGroup,
+      hospitalName: hospitalName,
+      patientDetails: patientDetails,
+      messageBody: messageBody,
+      requiredDate: requiredDate,
+      contactNumber: contactNumber,
+      emailAddress: email,
+      extraInformation: extraInfo,
+      requesterName: authorName,
+      requesterTag: authorTag,
     );
   }
 
-  void deleteMessage(String channelId, String messageId) {
-    final list = getMessagesForChannel(channelId);
-    list.removeWhere((m) => m.id == messageId);
-    try {
-      SupabaseService.instance.client.from('messages').delete().eq('id', messageId).then((_) {}, onError: (_) {});
-    } catch (e) {
-      debugPrint('[ChannelsViewModel] deleteMessage error: $e');
+  // Add Lost and Found Item (Both user and admin)
+  void addLostFoundItem({
+    required String title,
+    required String description,
+    LostFoundType type = LostFoundType.lost,
+    String? location,
+    String? contact,
+    String? imageUrl,
+    required String authorName,
+    required String authorTag,
+  }) {
+    final item = LostFoundModel(
+      id: 'lf_${DateTime.now().millisecondsSinceEpoch}',
+      title: title,
+      description: description,
+      type: type,
+      location: location,
+      contact: contact,
+      imageUrl: imageUrl,
+      authorName: authorName,
+      authorTag: authorTag,
+      createdAt: DateTime.now(),
+    );
+    _lostFoundItems.insert(0, item);
+    notifyListeners();
+  }
+
+  void postLostFoundItem({
+    required String title,
+    required String description,
+    String type = 'lost',
+    String? location,
+    String? contactNumber,
+    String? imageUrl,
+    required String authorName,
+    required String authorTag,
+  }) {
+    addLostFoundItem(
+      title: title,
+      description: description,
+      type: type == 'found' ? LostFoundType.found : LostFoundType.lost,
+      location: location,
+      contact: contactNumber,
+      imageUrl: imageUrl,
+      authorName: authorName,
+      authorTag: authorTag,
+    );
+  }
+
+  void sendPrivateAdminMessage({
+    required String studentId,
+    required String adminId,
+    required String text,
+    required String senderName,
+    required String senderTag,
+    required String senderRole,
+  }) {
+    final msg = ChatMessage(
+      id: 'dm_${DateTime.now().millisecondsSinceEpoch}',
+      senderName: senderName,
+      senderRole: senderRole,
+      senderTag: senderTag,
+      avatarInitials: senderName.isNotEmpty ? senderName.substring(0, 2).toUpperCase() : 'AU',
+      text: text,
+      timestamp: DateTime.now(),
+      recipientId: senderRole == 'Student' ? adminId : studentId,
+    );
+    _contactAdminMessages.add(msg);
+    notifyListeners();
+  }
+
+  void markAllNotificationsRead() {
+    for (var n in _notifications) {
+      n.isRead = true;
     }
     notifyListeners();
   }
 
-  void clearChannel(String channelId) {
-    final list = getMessagesForChannel(channelId);
-    list.clear();
+  void triggerBusJourneyStartNotification({required String busName, required String route}) {
+    _notifications.insert(
+      0,
+      NotificationItem(
+        id: 'notif_${DateTime.now().millisecondsSinceEpoch}',
+        title: '$busName Journey Started',
+        description: '$busName has started its journey on $route.',
+        timestamp: DateTime.now(),
+        type: NotificationType.journeyStart,
+        icon: Icons.directions_bus_rounded,
+        color: const Color(0xFFF59E0B),
+        relatedChannel: busName.contains('1') ? 'padma-1' : 'padma-2',
+      ),
+    );
+    notifyListeners();
+  }
+
+  void triggerDestinationApproachNotification({required String busName, required String destination, required int etaMinutes}) {
+    _notifications.insert(
+      0,
+      NotificationItem(
+        id: 'notif_${DateTime.now().millisecondsSinceEpoch}',
+        title: '$busName Approaching $destination',
+        description: '$busName is almost reached to your destination ($destination). ETA ~$etaMinutes mins.',
+        timestamp: DateTime.now(),
+        type: NotificationType.destinationArrival,
+        icon: Icons.pin_drop_rounded,
+        color: const Color(0xFF10B981),
+        relatedChannel: busName.contains('1') ? 'padma-1' : 'padma-2',
+      ),
+    );
+    notifyListeners();
+  }
+
+  // Submit Complaint (Student info auto-populated, only admin can view list)
+  void submitComplaint({
+    required String title,
+    required String body,
+    String? imageUrl,
+    required String studentName,
+    required String studentId,
+    required String department,
+    required String semester,
+    required String email,
+    required String pickupDestination,
+  }) {
+    final complaint = ComplaintModel(
+      id: 'cmp_${DateTime.now().millisecondsSinceEpoch}',
+      title: title,
+      body: body,
+      imageUrl: imageUrl,
+      studentName: studentName,
+      studentId: studentId,
+      department: department,
+      semester: semester,
+      email: email,
+      pickupDestination: pickupDestination,
+      submittedAt: DateTime.now(),
+      status: 'Submitted',
+    );
+    _complaints.insert(0, complaint);
     notifyListeners();
   }
 
   void toggleReaction(ChatMessage message, String emoji) {
-    final existing = message.reactions.where((r) => r.emoji == emoji);
-    if (existing.isNotEmpty) {
-      final reaction = existing.first;
-      if (reaction.isUserReacted) {
-        reaction.count = (reaction.count - 1).clamp(0, 999);
-        reaction.isUserReacted = false;
+    final reactionIndex = message.reactions.indexWhere((r) => r.emoji == emoji);
+    if (reactionIndex != -1) {
+      final r = message.reactions[reactionIndex];
+      if (r.isUserReacted) {
+        r.count--;
+        r.isUserReacted = false;
+        if (r.count <= 0) {
+          message.reactions.removeAt(reactionIndex);
+        }
       } else {
-        reaction.count += 1;
-        reaction.isUserReacted = true;
+        r.count++;
+        r.isUserReacted = true;
       }
     } else {
-      message.reactions.add(
-        ChatReaction(emoji: emoji, count: 1, isUserReacted: true),
-      );
+      message.reactions.add(ChatReaction(emoji: emoji, count: 1, isUserReacted: true));
     }
     notifyListeners();
+  }
 
-    try {
-      final Map<String, int> reactionsMap = {};
-      for (final r in message.reactions) {
-        reactionsMap[r.emoji] = r.count;
+  void _checkForMentionsAndNotify(String text, String senderTag, String channelName, String channelKey) {
+    if (text.contains('@')) {
+      final mentionMatch = RegExp(r'@([a-zA-Z0-9_-]+)').firstMatch(text);
+      if (mentionMatch != null) {
+        final mentioned = mentionMatch.group(1) ?? '';
+        _notifications.insert(
+          0,
+          NotificationItem(
+            id: 'notif_mention_${DateTime.now().millisecondsSinceEpoch}',
+            title: 'You were mentioned in $channelName',
+            description: '$senderTag: "$text"',
+            timestamp: DateTime.now(),
+            type: NotificationType.mention,
+            icon: Icons.alternate_email_rounded,
+            color: const Color(0xFFEF4444),
+            relatedChannel: channelKey,
+          ),
+        );
       }
-      SupabaseService.instance.client.from('messages').update({
-        'reactions': reactionsMap,
-      }).eq('id', message.id).then((_) {}, onError: (_) {});
-    } catch (e) {
-      debugPrint('[ChannelsViewModel] toggleReaction Supabase error: $e');
     }
   }
 
-  void addEmergencyRequest(EmergencyRequest request) {
-    _requests.insert(0, request);
+  // Backwards compatibility methods
+  void sendGeneralMessage(String text) {
+    sendPadma1Message(
+      text,
+      senderName: 'Padma Student',
+      senderTag: 'Padma_CSE_4-1_Mirpur10',
+      senderRole: 'Student',
+    );
+  }
+
+  void clearChannel(String channelId) {
+    if (channelId == 'rules-and-regulation' || channelId == 'general') {
+      _rulesMessages.clear();
+    } else if (channelId == 'announcements') {
+      _announcementsMessages.clear();
+    } else if (channelId == 'padma-1' || channelId == 'bus-1-mirpur') {
+      _padma1Messages.clear();
+    } else if (channelId == 'padma-2' || channelId == 'bus-2-uttara') {
+      _padma2Messages.clear();
+    }
     notifyListeners();
-
-    try {
-      SupabaseService.instance.client.from('emergency_requests').insert({
-        'id': request.id,
-        'type': request.category.name,
-        'title': request.title,
-        'description': request.description,
-        'location': request.patientLocation,
-        'contact': request.contactNumber,
-        'requester_name': request.postedBy,
-        'status': 'active',
-        'urgency': request.urgency.name,
-        'created_at': request.postedAt.toIso8601String(),
-      }).then((_) {}, onError: (_) {});
-    } catch (e) {
-      debugPrint('[ChannelsViewModel] addEmergencyRequest error: $e');
-    }
   }
 
+  void deleteMessage(String channelId, String messageId) {
+    if (channelId == 'rules-and-regulation' || channelId == 'general') {
+      _rulesMessages.removeWhere((m) => m.id == messageId);
+    } else if (channelId == 'announcements') {
+      _announcementsMessages.removeWhere((m) => m.id == messageId);
+    } else if (channelId == 'padma-1' || channelId == 'bus-1-mirpur') {
+      _padma1Messages.removeWhere((m) => m.id == messageId);
+    } else if (channelId == 'padma-2' || channelId == 'bus-2-uttara') {
+      _padma2Messages.removeWhere((m) => m.id == messageId);
+    }
+    notifyListeners();
+  }
+
+  void broadcastDispatchMessage(String channelId, String text, {String? senderName, String? senderRole, String? badgeText}) {
+    if (channelId == 'rules-and-regulation' || channelId == 'general') {
+      sendRulesMessage(text, senderName: senderName ?? 'Transport Admin', senderTag: 'Rafiq_Transport_Staff_Campus', isAdmin: true);
+    } else if (channelId == 'announcements') {
+      sendAnnouncementMessage(text, senderName: senderName ?? 'Transport Admin', senderTag: 'Rafiq_Transport_Staff_Campus', isAdmin: true);
+    } else if (channelId == 'bus-1-mirpur' || channelId == 'padma-1') {
+      sendPadma1Message(text, senderName: senderName ?? 'Transport Admin', senderTag: 'Rafiq_Transport_Staff_Campus', senderRole: 'Transport Admin');
+    } else {
+      sendPadma2Message(text, senderName: senderName ?? 'Transport Admin', senderTag: 'Rafiq_Transport_Staff_Campus', senderRole: 'Transport Admin');
+    }
+  }
 
   @override
   void dispose() {
     _messagesSub?.cancel();
-    _requestsSub?.cancel();
     super.dispose();
   }
 }

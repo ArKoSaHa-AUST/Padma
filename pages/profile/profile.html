@@ -1,4 +1,3 @@
-<!-- Padma - User Profile Page -->
 <!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
@@ -19,64 +18,30 @@
       theme: {
         extend: {
           colors: {
-            "error-container": "#93000a",
             "surface-bright": "#38393c",
-            "text-secondary": "#B5BAC1",
-            "on-surface-variant": "#bbcac6",
-            "primary-fixed-dim": "#4fdbc8",
-            "primary-fixed": "#71f8e4",
-            "surface": "#121316",
             "on-secondary": "#472a00",
-            "on-primary": "#003731",
-            "inverse-surface": "#e3e2e6",
-            "on-primary-fixed-variant": "#005048",
-            "on-tertiary": "#3c0091",
-            "secondary-container": "#ee9800",
-            "surface-tint": "#4fdbc8",
-            "outline": "#859490",
-            "surface-highest": "#383A40",
-            "outline-variant": "#3c4947",
-            "surface-variant": "#343538",
-            "on-tertiary-fixed-variant": "#5516be",
-            "on-primary-container": "#00423b",
-            "error": "#ffb4ab",
-            "secondary": "#ffb95f",
-            "on-background": "#e3e2e6",
-            "on-secondary-fixed": "#2a1700",
-            "urgent": "#EF4444",
-            "tertiary": "#d0bcff",
-            "surface-sidebar": "#2B2D31",
-            "text-primary": "#F2F3F5",
-            "surface-elevated": "#313338",
-            "warning": "#F97316",
-            "surface-container": "#1f1f23",
-            "background": "#121316",
-            "border-line": "#3F4147",
             "surface-container-highest": "#343538",
-            "on-primary-fixed": "#00201c",
-            "primary-variant": "#0F766E",
-            "tertiary-fixed-dim": "#d0bcff",
-            "on-tertiary-fixed": "#23005c",
-            "tertiary-fixed": "#e9ddff",
-            "tertiary-container": "#b192ff",
+            "warning": "#F97316",
+            "border-line": "#3F4147",
             "surface-dim": "#121316",
-            "text-muted": "#80848E",
-            "success": "#22C55E",
-            "surface-container-high": "#292a2d",
-            "on-tertiary-container": "#4700aa",
-            "primary": "#4fdbc8",
-            "secondary-fixed-dim": "#ffb95f",
-            "inverse-primary": "#006b5f",
-            "secondary-fixed": "#ffddb8",
-            "inverse-on-surface": "#2f3033",
-            "surface-container-low": "#1a1b1e",
-            "on-secondary-container": "#5b3800",
-            "primary-container": "#14b8a6",
-            "on-surface": "#e3e2e6",
+            "error": "#ffb4ab",
             "surface-container-lowest": "#0d0e11",
-            "on-secondary-fixed-variant": "#653e00",
-            "on-error-container": "#ffdad6",
-            "on-error": "#690005"
+            "background": "#121316",
+            "text-primary": "#F2F3F5",
+            "text-muted": "#80848E",
+            "urgent": "#EF4444",
+            "surface-variant": "#343538",
+            "primary-container": "#14b8a6",
+            "on-primary": "#003731",
+            "surface-container": "#1f1f23",
+            "surface-container-high": "#292a2d",
+            "success": "#22C55E",
+            "text-secondary": "#B5BAC1",
+            "primary": "#4fdbc8",
+            "surface-sidebar": "#2B2D31",
+            "surface-elevated": "#313338",
+            "surface": "#121316",
+            "surface-highest": "#383A40"
           }
         }
       }
@@ -89,17 +54,17 @@
     <!-- User Card -->
     <div class="relative overflow-hidden rounded-2xl bg-surface-sidebar p-5 shadow-lg mb-4 border border-border-line/40">
       <div class="relative z-10 flex items-start gap-4">
-        <div class="w-[72px] h-[72px] rounded-full p-[2px] bg-gradient-to-br from-primary-container to-primary-variant shadow-md">
+        <div class="w-16 h-16 rounded-full p-[2px] bg-gradient-to-br from-primary to-primary-variant shadow-md shrink-0">
           <div class="w-full h-full rounded-full bg-surface-elevated flex items-center justify-center">
-            <span class="text-2xl font-bold text-primary-container">RH</span>
+            <span class="text-2xl font-bold text-primary user-avatar-initials">PS</span>
           </div>
         </div>
         <div class="flex-1 min-w-0">
-          <h2 class="text-lg font-bold text-text-primary tracking-tight truncate">Rakib Hasan</h2>
-          <p class="text-xs text-text-secondary mt-0.5">ID: 2001234</p>
+          <h2 class="text-lg font-bold text-text-primary tracking-tight truncate user-display-name">Padma Student</h2>
+          <p class="text-xs text-text-secondary mt-0.5 font-mono">ID: <span class="user-display-id">2023202420252026</span></p>
           <div class="flex flex-wrap items-center gap-1.5 mt-2">
             <span class="px-2.5 py-0.5 rounded-full bg-surface-elevated text-text-secondary text-[11px] font-medium">Student</span>
-            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-container/15 text-primary-container text-[11px] font-semibold">
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-container/20 text-primary text-[11px] font-semibold">
               <span class="material-symbols-outlined text-[13px]">verified</span>
               AUST Verified
             </span>
@@ -108,44 +73,124 @@
       </div>
     </div>
 
-    <!-- Academic Info -->
-    <div class="rounded-2xl bg-surface-elevated p-4 shadow-md mb-4 space-y-3 border border-border-line/30">
+    <!-- Academic & Transit Info -->
+    <div class="rounded-2xl bg-surface-elevated p-4 shadow-md mb-4 space-y-3 border border-border-line/30 text-sm">
       <div>
-        <span class="text-[11px] text-text-muted uppercase tracking-wider block">Department</span>
-        <span class="text-sm font-medium text-text-primary block mt-0.5">Computer Science & Engineering (CSE)</span>
+        <span class="text-[11px] text-text-muted uppercase tracking-wider block font-bold">Department</span>
+        <span class="font-semibold text-text-primary block mt-0.5 user-display-dept">Computer Science & Engineering (CSE)</span>
       </div>
       <div class="h-[1px] w-full bg-surface-sidebar"></div>
       <div>
-        <span class="text-[11px] text-text-muted uppercase tracking-wider block">Batch / Session</span>
-        <span class="text-sm font-medium text-text-primary block mt-0.5">Batch 22 • 4th Year</span>
+        <span class="text-[11px] text-text-muted uppercase tracking-wider block font-bold">Semester</span>
+        <span class="font-semibold text-text-primary block mt-0.5 user-display-semester">4-1</span>
       </div>
       <div class="h-[1px] w-full bg-surface-sidebar"></div>
       <div>
-        <span class="text-[11px] text-text-muted uppercase tracking-wider block">Blood Group</span>
+        <span class="text-[11px] text-text-muted uppercase tracking-wider block font-bold">Pickup Destination</span>
+        <span class="font-semibold text-primary block mt-0.5 user-display-pickup">Mirpur 10</span>
+      </div>
+      <div class="h-[1px] w-full bg-surface-sidebar"></div>
+      <div>
+        <span class="text-[11px] text-text-muted uppercase tracking-wider block font-bold">Blood Group</span>
         <div class="flex items-center justify-between gap-2 mt-1">
-          <span class="inline-flex items-center gap-1 rounded-full bg-urgent px-3 py-0.5 font-bold text-white text-[11px]">
+          <span class="inline-flex items-center gap-1 rounded-full bg-urgent px-3 py-0.5 font-bold text-white text-xs">
             <span class="material-symbols-outlined text-[13px]">water_drop</span>
-            O+ (Positive)
+            <span class="user-display-blood">O+</span>
           </span>
-          <span class="text-xs text-text-secondary flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-urgent animate-pulse"></span>
-            Registered Donor
-          </span>
+          <span class="text-xs text-text-secondary">Campus Donor Desk</span>
         </div>
+      </div>
+      <div class="h-[1px] w-full bg-surface-sidebar"></div>
+      <div>
+        <span class="text-[11px] text-text-muted uppercase tracking-wider block font-bold">Chat Tag</span>
+        <span class="font-mono text-xs text-primary-fixed block mt-0.5 user-display-chattag">@Padma_CSE_4-1_Mirpur10</span>
       </div>
     </div>
 
     <!-- Actions -->
-    <div class="rounded-2xl bg-surface-elevated overflow-hidden shadow-md border border-border-line/30">
-      <a href="../auth/signin.html" class="flex items-center justify-between h-[52px] px-4 hover:bg-urgent/10 transition-colors">
-        <div class="flex items-center gap-3">
-          <span class="material-symbols-outlined text-urgent text-[20px]">logout</span>
-          <span class="text-sm font-medium text-urgent">Sign Out / Switch Account</span>
-        </div>
-        <span class="material-symbols-outlined text-urgent text-[18px]">chevron_right</span>
-      </a>
+    <div class="space-y-2">
+      <button onclick="openEditProfileModal()" class="w-full h-11 rounded-xl bg-surface-elevated hover:bg-surface-highest text-text-primary font-bold text-xs flex items-center justify-center gap-2 border border-border-line/40 shadow transition-all">
+        <span class="material-symbols-outlined text-[18px] text-primary">edit</span>
+        <span>Edit Information</span>
+      </button>
+
+      <div class="rounded-2xl bg-surface-elevated overflow-hidden shadow-md border border-border-line/30">
+        <button onclick="handleSignOut()" class="w-full flex items-center justify-between h-[52px] px-4 hover:bg-urgent/10 transition-colors">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-urgent text-[20px]">logout</span>
+            <span class="text-sm font-bold text-urgent">Sign Out</span>
+          </div>
+          <span class="material-symbols-outlined text-urgent text-[18px]">chevron_right</span>
+        </button>
+      </div>
     </div>
   </main>
+
+  <!-- Edit Profile Modal -->
+  <dialog id="edit-profile-modal" class="m-auto rounded-2xl bg-surface-elevated text-text-primary p-5 backdrop:bg-surface/75 shadow-2xl max-w-[360px] w-full border border-border-line/40">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-bold text-sm text-text-primary">Edit Student Information</h3>
+      <button onclick="closeEditProfileModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary bg-surface-highest">
+        <span class="material-symbols-outlined text-[18px]">close</span>
+      </button>
+    </div>
+    <form onsubmit="event.preventDefault(); saveEditedProfile();" class="flex flex-col gap-3">
+      <div>
+        <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Full Name</label>
+        <input id="edit-profile-name" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" required type="text"/>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Department</label>
+          <select id="edit-profile-dept" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none">
+            <option>CSE</option>
+            <option>EEE</option>
+            <option>ME</option>
+            <option>CE</option>
+            <option>IPE</option>
+            <option>TE</option>
+            <option>BBA</option>
+            <option>Arch</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Semester</label>
+          <select id="edit-profile-sem" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none">
+            <option>1-1</option>
+            <option>1-2</option>
+            <option>2-1</option>
+            <option>2-2</option>
+            <option>3-1</option>
+            <option>3-2</option>
+            <option>4-1</option>
+            <option>4-2</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Blood Group</label>
+          <select id="edit-profile-blood" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none">
+            <option>A+</option>
+            <option>A-</option>
+            <option>B+</option>
+            <option>B-</option>
+            <option>O+</option>
+            <option>O-</option>
+            <option>AB+</option>
+            <option>AB-</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Pickup Destination</label>
+          <input id="edit-profile-pickup" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" required type="text"/>
+        </div>
+      </div>
+      <button type="submit" class="w-full h-11 bg-primary text-on-primary font-bold text-xs rounded-xl shadow active:scale-95 transition-transform mt-2">
+        Save Changes
+      </button>
+    </form>
+  </dialog>
 
   <!-- Bottom Navigation -->
   <nav class="fixed bottom-0 max-w-[430px] w-full z-40 pb-safe bg-surface-sidebar/95 backdrop-blur-xl shadow-[0_-1px_12px_rgba(0,0,0,0.35)] border-t border-border-line/30">
@@ -168,5 +213,9 @@
       </a>
     </div>
   </nav>
+
+  <script src="../../assets/js/supabase-client.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script src="../../assets/js/app.js"></script>
 </body>
 </html>
