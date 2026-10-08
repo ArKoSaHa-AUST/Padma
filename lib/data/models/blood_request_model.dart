@@ -1,101 +1,66 @@
-enum BloodUrgency {
-  standard,
-  urgent,
-  critical;
-
-  String get label {
-    switch (this) {
-      case BloodUrgency.standard:
-        return 'Standard';
-      case BloodUrgency.urgent:
-        return 'Urgent';
-      case BloodUrgency.critical:
-        return 'Critical';
-    }
-  }
-}
-
-enum BloodRequestStatus {
-  active,
-  fulfilled,
-  expired;
-
-  String get label {
-    switch (this) {
-      case BloodRequestStatus.active:
-        return 'Needed';
-      case BloodRequestStatus.fulfilled:
-        return 'Fulfilled';
-      case BloodRequestStatus.expired:
-        return 'Expired';
-    }
-  }
-}
-
 class BloodRequestModel {
   final String id;
-  final String requesterId;
-  final String requesterName;
-  final String requesterPhone;
+  final String title;
   final String bloodGroup;
-  final int units;
-  final String hospital;
-  final String location;
-  final DateTime neededBy;
-  final BloodUrgency urgency;
-  final String? notes;
-  final BloodRequestStatus status;
-  final List<String> donorUserIds;
+  final String hospitalName;
+  final String? patientDetails;
+  final String? messageBody;
+  final String? requiredDate;
+  final String contactNumber;
+  final String emailAddress;
+  final String? extraInformation;
+  final String requesterName;
+  final String requesterTag;
   final DateTime createdAt;
 
   const BloodRequestModel({
     required this.id,
-    required this.requesterId,
-    required this.requesterName,
-    required this.requesterPhone,
+    required this.title,
     required this.bloodGroup,
-    required this.units,
-    required this.hospital,
-    required this.location,
-    required this.neededBy,
-    required this.urgency,
-    this.notes,
-    required this.status,
-    this.donorUserIds = const [],
+    required this.hospitalName,
+    this.patientDetails,
+    this.messageBody,
+    this.requiredDate,
+    required this.contactNumber,
+    required this.emailAddress,
+    this.extraInformation,
+    required this.requesterName,
+    required this.requesterTag,
     required this.createdAt,
   });
 
   BloodRequestModel copyWith({
     String? id,
-    String? requesterId,
-    String? requesterName,
-    String? requesterPhone,
+    String? title,
     String? bloodGroup,
-    int? units,
-    String? hospital,
-    String? location,
-    DateTime? neededBy,
-    BloodUrgency? urgency,
-    String? notes,
-    BloodRequestStatus? status,
-    List<String>? donorUserIds,
+    String? hospitalName,
+    String? patientDetails,
+    String? messageBody,
+    String? requiredDate,
+    String? contactNumber,
+    String? emailAddress,
+    String? extraInformation,
+    String? requesterName,
+    String? requesterTag,
     DateTime? createdAt,
   }) {
     return BloodRequestModel(
       id: id ?? this.id,
-      requesterId: requesterId ?? this.requesterId,
-      requesterName: requesterName ?? this.requesterName,
-      requesterPhone: requesterPhone ?? this.requesterPhone,
+      title: title ?? this.title,
       bloodGroup: bloodGroup ?? this.bloodGroup,
-      units: units ?? this.units,
-      hospital: hospital ?? this.hospital,
-      location: location ?? this.location,
-      neededBy: neededBy ?? this.neededBy,
-      urgency: urgency ?? this.urgency,
-      notes: notes ?? this.notes,
-      status: status ?? this.status,
-      donorUserIds: donorUserIds ?? this.donorUserIds,
+      hospitalName: hospitalName ?? this.hospitalName,
+      patientDetails: patientDetails ?? this.patientDetails,
+      messageBody: messageBody ?? this.messageBody,
+      requiredDate: requiredDate ?? this.requiredDate,
+      contactNumber: contactNumber ?? this.contactNumber,
+      emailAddress: emailAddress ?? this.emailAddress,
+      extraInformation: extraInformation ?? this.extraInformation,
+      requesterName: requesterName ?? this.requesterName,
+      requesterTag: requesterTag ?? this.requesterTag,
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  String get authorTag => requesterTag;
+  String get authorName => requesterName;
 }
