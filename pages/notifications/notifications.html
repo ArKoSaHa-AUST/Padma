@@ -1,4 +1,3 @@
-<!-- Padma - Notifications Page -->
 <!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
@@ -19,64 +18,30 @@
       theme: {
         extend: {
           colors: {
-            "error-container": "#93000a",
             "surface-bright": "#38393c",
-            "text-secondary": "#B5BAC1",
-            "on-surface-variant": "#bbcac6",
-            "primary-fixed-dim": "#4fdbc8",
-            "primary-fixed": "#71f8e4",
-            "surface": "#121316",
             "on-secondary": "#472a00",
-            "on-primary": "#003731",
-            "inverse-surface": "#e3e2e6",
-            "on-primary-fixed-variant": "#005048",
-            "on-tertiary": "#3c0091",
-            "secondary-container": "#ee9800",
-            "surface-tint": "#4fdbc8",
-            "outline": "#859490",
-            "surface-highest": "#383A40",
-            "outline-variant": "#3c4947",
-            "surface-variant": "#343538",
-            "on-tertiary-fixed-variant": "#5516be",
-            "on-primary-container": "#00423b",
-            "error": "#ffb4ab",
-            "secondary": "#ffb95f",
-            "on-background": "#e3e2e6",
-            "on-secondary-fixed": "#2a1700",
-            "urgent": "#EF4444",
-            "tertiary": "#d0bcff",
-            "surface-sidebar": "#2B2D31",
-            "text-primary": "#F2F3F5",
-            "surface-elevated": "#313338",
-            "warning": "#F97316",
-            "surface-container": "#1f1f23",
-            "background": "#121316",
-            "border-line": "#3F4147",
             "surface-container-highest": "#343538",
-            "on-primary-fixed": "#00201c",
-            "primary-variant": "#0F766E",
-            "tertiary-fixed-dim": "#d0bcff",
-            "on-tertiary-fixed": "#23005c",
-            "tertiary-fixed": "#e9ddff",
-            "tertiary-container": "#b192ff",
+            "warning": "#F97316",
+            "border-line": "#3F4147",
             "surface-dim": "#121316",
-            "text-muted": "#80848E",
-            "success": "#22C55E",
-            "surface-container-high": "#292a2d",
-            "on-tertiary-container": "#4700aa",
-            "primary": "#4fdbc8",
-            "secondary-fixed-dim": "#ffb95f",
-            "inverse-primary": "#006b5f",
-            "secondary-fixed": "#ffddb8",
-            "inverse-on-surface": "#2f3033",
-            "surface-container-low": "#1a1b1e",
-            "on-secondary-container": "#5b3800",
-            "primary-container": "#14b8a6",
-            "on-surface": "#e3e2e6",
+            "error": "#ffb4ab",
             "surface-container-lowest": "#0d0e11",
-            "on-secondary-fixed-variant": "#653e00",
-            "on-error-container": "#ffdad6",
-            "on-error": "#690005"
+            "background": "#121316",
+            "text-primary": "#F2F3F5",
+            "text-muted": "#80848E",
+            "urgent": "#EF4444",
+            "surface-variant": "#343538",
+            "primary-container": "#14b8a6",
+            "on-primary": "#003731",
+            "surface-container": "#1f1f23",
+            "surface-container-high": "#292a2d",
+            "success": "#22C55E",
+            "text-secondary": "#B5BAC1",
+            "primary": "#4fdbc8",
+            "surface-sidebar": "#2B2D31",
+            "surface-elevated": "#313338",
+            "surface": "#121316",
+            "surface-highest": "#383A40"
           }
         }
       }
@@ -95,25 +60,36 @@
       </div>
       <button onclick="alert('Marked all as read')" class="text-xs text-text-secondary hover:text-primary transition-colors flex items-center gap-1">
         <span class="material-symbols-outlined text-[16px]">done_all</span>
-        <span>Mark read</span>
+        <span>Mark all read</span>
       </button>
     </div>
 
     <div class="space-y-3">
-      <a href="../channels/requests.html" class="block p-3.5 rounded-2xl bg-surface-elevated border-l-4 border-urgent shadow">
+      <!-- Destination Proximity Alert -->
+      <a href="../tracker/home.html" class="block p-3.5 rounded-2xl bg-surface-elevated border-l-4 border-primary shadow hover:brightness-105 transition-all">
         <div class="flex items-center justify-between">
-          <span class="text-[13px] font-bold text-urgent">Emergency Blood Request (O+)</span>
-          <span class="text-[11px] text-text-muted">12m ago</span>
-        </div>
-        <p class="text-xs text-text-primary mt-0.5">Needed for surgery at DMCH Ward 14. Attendant: Father of CSE student.</p>
-      </a>
-
-      <a href="../channels/bus1.html" class="block p-3.5 rounded-2xl bg-surface-elevated border-l-4 border-primary shadow">
-        <div class="flex items-center justify-between">
-          <span class="text-[13px] font-bold text-primary">Bus 1 Approaching Purobi</span>
+          <span class="text-[13px] font-bold text-primary">Padma 1 is almost reached to your destination</span>
           <span class="text-[11px] text-text-muted">2m ago</span>
         </div>
-        <p class="text-xs text-text-primary mt-0.5">BRTC-2401 is 2 minutes away from Mirpur 11 stop.</p>
+        <p class="text-xs text-text-secondary mt-0.5">BRTC-2401 is 2 minutes away from Mirpur 10 roundabout. Please proceed to the boarding bay.</p>
+      </a>
+
+      <!-- Journey Start Alert -->
+      <a href="../tracker/home.html" class="block p-3.5 rounded-2xl bg-surface-elevated border-l-4 border-primary shadow hover:brightness-105 transition-all">
+        <div class="flex items-center justify-between">
+          <span class="text-[13px] font-bold text-text-primary">Padma 1 Started Journey</span>
+          <span class="text-[11px] text-text-muted">1h ago</span>
+        </div>
+        <p class="text-xs text-text-secondary mt-0.5">Padma 1 departed from Mirpur 12 terminal on schedule at 7:15 AM.</p>
+      </a>
+
+      <!-- Blood Request -->
+      <a href="../channels/requests.html" class="block p-3.5 rounded-2xl bg-surface-elevated border-l-4 border-urgent shadow hover:brightness-105 transition-all">
+        <div class="flex items-center justify-between">
+          <span class="text-[13px] font-bold text-urgent">Emergency Blood Request (O+)</span>
+          <span class="text-[11px] text-text-muted">2h ago</span>
+        </div>
+        <p class="text-xs text-text-secondary mt-0.5">Needed for surgery at DMCH Ward 14. Attendant: Father of CSE student.</p>
       </a>
     </div>
   </main>
@@ -139,5 +115,9 @@
       </a>
     </div>
   </nav>
+
+  <script src="../../assets/js/supabase-client.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script src="../../assets/js/app.js"></script>
 </body>
 </html>
