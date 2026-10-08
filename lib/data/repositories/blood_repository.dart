@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/blood_request_model.dart';
 import '../mock/mock_blood_requests.dart';
+import 'supabase_blood_repository.dart';
+
 
 abstract class BloodRepository {
   Stream<List<BloodRequestModel>> getRequestsStream();
@@ -93,10 +95,11 @@ class InMemoryBloodRepository implements BloodRepository {
 }
 
 final bloodRepositoryProvider = Provider<BloodRepository>((ref) {
-  final repo = InMemoryBloodRepository();
+  final repo = SupabaseBloodRepository();
   ref.onDispose(repo.dispose);
   return repo;
 });
+
 
 final selectedBloodGroupFilterProvider = StateProvider<String?>((ref) => null);
 
