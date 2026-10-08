@@ -1,0 +1,173 @@
+<!-- Padma - Requests Channel Page -->
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+  <meta content="mobile_tab" name="shell-type"/>
+  <title>Padma - Emergency Requests</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "error-container": "#93000a",
+            "surface-bright": "#38393c",
+            "text-secondary": "#B5BAC1",
+            "on-surface-variant": "#bbcac6",
+            "primary-fixed-dim": "#4fdbc8",
+            "primary-fixed": "#71f8e4",
+            "surface": "#121316",
+            "on-secondary": "#472a00",
+            "on-primary": "#003731",
+            "inverse-surface": "#e3e2e6",
+            "on-primary-fixed-variant": "#005048",
+            "on-tertiary": "#3c0091",
+            "secondary-container": "#ee9800",
+            "surface-tint": "#4fdbc8",
+            "outline": "#859490",
+            "surface-highest": "#383A40",
+            "outline-variant": "#3c4947",
+            "surface-variant": "#343538",
+            "on-tertiary-fixed-variant": "#5516be",
+            "on-primary-container": "#00423b",
+            "error": "#ffb4ab",
+            "secondary": "#ffb95f",
+            "on-background": "#e3e2e6",
+            "on-secondary-fixed": "#2a1700",
+            "urgent": "#EF4444",
+            "tertiary": "#d0bcff",
+            "surface-sidebar": "#2B2D31",
+            "text-primary": "#F2F3F5",
+            "surface-elevated": "#313338",
+            "warning": "#F97316",
+            "surface-container": "#1f1f23",
+            "background": "#121316",
+            "border-line": "#3F4147",
+            "surface-container-highest": "#343538",
+            "on-primary-fixed": "#00201c",
+            "primary-variant": "#0F766E",
+            "tertiary-fixed-dim": "#d0bcff",
+            "on-tertiary-fixed": "#23005c",
+            "tertiary-fixed": "#e9ddff",
+            "tertiary-container": "#b192ff",
+            "surface-dim": "#121316",
+            "text-muted": "#80848E",
+            "success": "#22C55E",
+            "surface-container-high": "#292a2d",
+            "on-tertiary-container": "#4700aa",
+            "primary": "#4fdbc8",
+            "secondary-fixed-dim": "#ffb95f",
+            "inverse-primary": "#006b5f",
+            "secondary-fixed": "#ffddb8",
+            "inverse-on-surface": "#2f3033",
+            "surface-container-low": "#1a1b1e",
+            "on-secondary-container": "#5b3800",
+            "primary-container": "#14b8a6",
+            "on-surface": "#e3e2e6",
+            "surface-container-lowest": "#0d0e11",
+            "on-secondary-fixed-variant": "#653e00",
+            "on-error-container": "#ffdad6",
+            "on-error": "#690005"
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="../../assets/css/style.css"/>
+</head>
+<body class="bg-background font-sans text-text-primary antialiased min-h-screen">
+  <!-- Channel Sub-Header -->
+  <div class="sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-surface-sidebar/95 backdrop-blur-md border-b border-border-line/30">
+    <div class="flex items-center gap-2 min-w-0">
+      <a href="../tracker/home.html" class="w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container hover:bg-surface-elevated text-text-secondary active:scale-95 transition-transform">
+        <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+      </a>
+      <div class="w-8 h-8 rounded-lg bg-urgent/15 flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-urgent text-[20px]">water_drop</span>
+      </div>
+      <div class="flex flex-col min-w-0">
+        <div class="flex items-center gap-1.5 min-w-0">
+          <span class="text-sm font-bold text-text-primary truncate">requests</span>
+          <span class="w-2 h-2 rounded-full bg-urgent animate-ping shrink-0"></span>
+        </div>
+        <span class="text-[10px] tracking-wider uppercase font-semibold text-text-muted">COMMUNITY CHANNEL</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Channel Banner & Filters -->
+  <div class="px-4 py-3.5 bg-surface-sidebar">
+    <div class="space-y-1">
+      <h1 class="text-base font-bold text-text-primary tracking-tight">Emergency & Community Requests</h1>
+      <p class="text-xs text-text-secondary">Post urgent needs like blood donation or immediate campus assistance.</p>
+    </div>
+
+    <!-- Quick Filter Bar -->
+    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pt-3 pb-1 -mx-4 px-4">
+      <button class="req-filter-btn px-3 py-1.5 rounded-full bg-primary-container text-on-primary text-xs font-bold shrink-0 shadow-sm" onclick="filterRequests('all', this)">
+        <span>All (4)</span>
+      </button>
+      <button class="req-filter-btn px-3 py-1.5 rounded-full bg-surface-container text-text-primary text-xs shrink-0" onclick="filterRequests('blood', this)">
+        <span class="material-symbols-outlined text-urgent text-[15px] align-text-bottom">water_drop</span>
+        <span>Blood Needed</span>
+      </button>
+      <button class="req-filter-btn px-3 py-1.5 rounded-full bg-surface-container text-text-primary text-xs shrink-0" onclick="filterRequests('help', this)">
+        <span class="material-symbols-outlined text-warning text-[15px] align-text-bottom">emergency_home</span>
+        <span>General Help</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Feed Section -->
+  <main class="flex flex-col gap-4 p-4 pb-28 min-h-screen" id="requests-card-feed">
+    <!-- Card 1 -->
+    <article class="req-card blood-req relative flex flex-col rounded-2xl bg-surface-elevated p-4 shadow-md border-l-4 border-urgent">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-urgent text-white text-[12px] font-bold shadow-sm">
+            <span class="material-symbols-outlined text-[13px]">bloodtype</span>
+            O+ POSITIVE
+          </span>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-urgent/20 text-urgent text-[11px] font-bold">
+            CRITICAL / SURGERY
+          </span>
+        </div>
+        <span class="text-xs text-success font-semibold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span> Active</span>
+      </div>
+      <p class="text-sm font-semibold text-text-primary mt-2 leading-snug">
+        Urgent O+ blood needed for open-heart surgery at Dhaka Medical College Hospital (DMCH).
+      </p>
+      <div class="mt-2 p-2.5 rounded-xl bg-surface-container space-y-1 text-xs">
+        <div class="flex items-center gap-2 text-text-secondary">
+          <span class="material-symbols-outlined text-urgent text-[16px]">location_on</span>
+          <span class="text-text-primary font-medium">Dhaka Medical College Hospital, Ward 14</span>
+        </div>
+        <div class="flex items-center gap-2 text-text-secondary">
+          <span class="material-symbols-outlined text-urgent text-[16px]">water_drop</span>
+          <span class="text-text-primary font-medium">2 Bags needed by 2:00 PM today</span>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2 mt-3">
+        <a class="h-10 flex items-center justify-center gap-1.5 rounded-xl bg-primary-container text-on-primary text-xs font-bold transition-all shadow-sm" href="tel:+8801700000000">
+          <span class="material-symbols-outlined text-[18px]">call</span>
+          <span>Call Attendant</span>
+        </a>
+        <button onclick="alert('Thank you! Coordinator notified.')" class="h-10 flex items-center justify-center rounded-xl bg-urgent/15 text-urgent text-xs font-bold transition-all" type="button">
+          I Can Donate
+        </button>
+      </div>
+    </article>
+  </main>
+
+  <script src="../../assets/js/requests.js"></script>
+</body>
+</html>

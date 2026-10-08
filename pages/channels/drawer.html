@@ -1,0 +1,187 @@
+<!-- Padma - Channel Drawer Page -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Padma - Channels Navigation</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-bright": "#38393c",
+            "on-secondary": "#472a00",
+            "surface-container-highest": "#343538",
+            "secondary-fixed": "#ffddb8",
+            "secondary-fixed-dim": "#ffb95f",
+            "on-tertiary-fixed": "#23005c",
+            "warning": "#F97316",
+            "border-line": "#3F4147",
+            "on-background": "#e3e2e6",
+            "surface-dim": "#121316",
+            "error": "#ffb4ab",
+            "surface-container-lowest": "#0d0e11",
+            "inverse-surface": "#e3e2e6",
+            "background": "#121316",
+            "on-tertiary-container": "#4700aa",
+            "text-primary": "#F2F3F5",
+            "primary-fixed": "#71f8e4",
+            "on-error": "#690005",
+            "on-primary-fixed": "#00201c",
+            "text-muted": "#80848E",
+            "urgent": "#EF4444",
+            "surface-variant": "#343538",
+            "on-secondary-container": "#5b3800",
+            "tertiary-fixed": "#e9ddff",
+            "on-tertiary-fixed-variant": "#5516be",
+            "secondary-container": "#ee9800",
+            "primary-container": "#14b8a6",
+            "on-primary-fixed-variant": "#005048",
+            "surface-tint": "#4fdbc8",
+            "on-primary": "#003731",
+            "surface-container": "#1f1f23",
+            "surface-container-high": "#292a2d",
+            "on-tertiary": "#3c0091",
+            "on-primary-container": "#00423b",
+            "success": "#22C55E",
+            "surface-container-low": "#1a1b1e",
+            "primary-variant": "#0F766E",
+            "text-secondary": "#B5BAC1",
+            "primary-fixed-dim": "#4fdbc8",
+            "on-secondary-fixed": "#2a1700",
+            "primary": "#4fdbc8",
+            "inverse-on-surface": "#2f3033",
+            "outline-variant": "#3c4947",
+            "on-surface": "#e3e2e6",
+            "outline": "#859490",
+            "surface-sidebar": "#2B2D31",
+            "tertiary-container": "#b192ff",
+            "tertiary-fixed-dim": "#d0bcff",
+            "on-error-container": "#ffdad6",
+            "secondary": "#ffb95f",
+            "error-container": "#93000a",
+            "surface-elevated": "#313338",
+            "surface": "#121316",
+            "surface-highest": "#383A40",
+            "tertiary": "#d0bcff",
+            "on-secondary-fixed-variant": "#653e00",
+            "on-surface-variant": "#bbcac6",
+            "inverse-primary": "#006b5f"
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="../../assets/css/style.css"/>
+</head>
+<body class="bg-black font-sans text-text-primary antialiased min-h-screen flex justify-center">
+  <div class="app-container relative flex select-none">
+    <!-- Dimmed Background -->
+    <div class="absolute inset-0 w-full h-full bg-[#111315] opacity-30 pointer-events-none"></div>
+
+    <!-- Scrim Dismiss -->
+    <a href="../tracker/home.html" class="absolute inset-0 bg-black/65 backdrop-blur-[3px] z-10 flex justify-end">
+      <div class="w-[80px] h-full flex flex-col items-center justify-center text-white/50 space-y-2">
+        <span class="text-[10px] tracking-wide font-medium uppercase rotate-90 text-gray-400">Close</span>
+      </div>
+    </a>
+
+    <!-- Discord Drawer -->
+    <aside class="absolute left-0 top-0 w-[310px] h-full bg-surface-sidebar z-20 flex flex-col shadow-2xl border-r border-border-line/40">
+      <!-- Server Header -->
+      <div class="h-[72px] bg-surface-container-lowest border-b border-border-line px-4 flex items-center justify-between shrink-0">
+        <div class="flex items-center space-x-3 truncate">
+          <div class="relative w-10 h-10 rounded-full bg-teal-950 border-2 border-primary/70 flex items-center justify-center shrink-0 shadow-inner">
+            <span class="font-extrabold text-primary text-xs tracking-tighter">AUST</span>
+            <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-primary rounded-full flex items-center justify-center">
+              <span class="material-symbols-outlined text-[10px] text-on-primary font-bold">check</span>
+            </div>
+          </div>
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center space-x-1.5">
+              <h1 class="text-text-primary font-semibold text-[15px] truncate">Padma — AUST</h1>
+              <span class="bg-primary/20 text-primary text-[10px] font-bold px-1.5 rounded">Uni</span>
+            </div>
+            <p class="text-text-muted text-[11px] truncate">Ahsanullah University Bus Hub</p>
+          </div>
+        </div>
+        <a href="../tracker/home.html" class="text-text-secondary hover:text-white p-1">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </a>
+      </div>
+
+      <!-- Channel Navigation -->
+      <nav class="flex-1 overflow-y-auto px-2 py-3 space-y-4 no-scrollbar">
+        <!-- Information -->
+        <div>
+          <div class="flex items-center space-x-1 text-text-muted text-[11px] font-bold tracking-wider uppercase px-2 mb-1">
+            <span>Information</span>
+          </div>
+          <a class="h-[40px] flex items-center px-2.5 rounded-lg text-text-primary hover:bg-surface-elevated transition-colors" href="../tracker/home.html">
+            <span class="text-base mr-2">📣</span>
+            <span class="text-[14px] font-semibold truncate flex-1">announcements</span>
+            <span class="bg-urgent text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">1</span>
+          </a>
+        </div>
+
+        <!-- Community -->
+        <div>
+          <div class="flex items-center space-x-1 text-text-muted text-[11px] font-bold tracking-wider uppercase px-2 mb-1">
+            <span>Community</span>
+          </div>
+          <a class="h-[40px] flex items-center px-2.5 rounded-lg text-text-primary hover:bg-surface-elevated transition-colors" href="requests.html">
+            <span class="text-base mr-2">🩸</span>
+            <span class="text-[14px] font-semibold truncate flex-1">requests</span>
+            <span class="bg-urgent/20 text-urgent border border-urgent/50 text-[10px] font-bold px-1.5 py-0.2 rounded">NEW</span>
+          </a>
+          <a class="h-[40px] flex items-center px-2.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-elevated transition-colors" href="general.html">
+            <span class="text-lg font-light text-text-muted mr-2.5 ml-0.5">#</span>
+            <span class="text-[14px] font-medium truncate flex-1">general</span>
+          </a>
+        </div>
+
+        <!-- Buses -->
+        <div>
+          <div class="flex items-center justify-between px-2 mb-1 text-text-muted text-[11px] font-bold tracking-wider uppercase">
+            <span>Buses</span>
+            <span class="text-[10px] text-primary font-medium">4 active</span>
+          </div>
+          <a class="h-[40px] flex items-center px-2.5 rounded-lg bg-surface-elevated text-text-primary shadow-sm border-l-4 border-primary" href="bus1.html">
+            <span class="text-base mr-2">🚌</span>
+            <span class="text-[14px] font-semibold truncate flex-1">bus-1-mirpur</span>
+            <span class="flex items-center space-x-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>LIVE</span>
+            </span>
+          </a>
+        </div>
+      </nav>
+
+      <!-- User Dock -->
+      <footer class="h-[72px] bg-surface-container-lowest border-t border-border-line px-3 flex items-center justify-between shrink-0">
+        <a href="../profile/profile.html" class="flex items-center space-x-2.5 min-w-0 cursor-pointer p-1 rounded-md hover:bg-surface-elevated/50 transition-colors">
+          <div class="relative shrink-0">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-teal-700 to-emerald-400 flex items-center justify-center text-white font-bold text-sm shadow">
+              RH
+            </div>
+            <div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-success rounded-full border-2 border-surface-container-lowest"></div>
+          </div>
+          <div class="min-w-0 flex flex-col">
+            <span class="text-[13.5px] font-semibold text-text-primary leading-none truncate">Rakib Hasan</span>
+            <span class="text-[11px] text-text-muted truncate mt-1">Student • CSE • B22</span>
+          </div>
+        </a>
+      </footer>
+    </aside>
+  </div>
+</body>
+</html>

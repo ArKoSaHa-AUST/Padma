@@ -1,0 +1,185 @@
+<!-- Padma - General Chat Channel Page -->
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+  <meta content="mobile_tab" name="shell-type"/>
+  <title>Padma - #general Channel</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "error-container": "#93000a",
+            "surface-bright": "#38393c",
+            "text-secondary": "#B5BAC1",
+            "on-surface-variant": "#bbcac6",
+            "primary-fixed-dim": "#4fdbc8",
+            "primary-fixed": "#71f8e4",
+            "surface": "#121316",
+            "on-secondary": "#472a00",
+            "on-primary": "#003731",
+            "inverse-surface": "#e3e2e6",
+            "on-primary-fixed-variant": "#005048",
+            "on-tertiary": "#3c0091",
+            "secondary-container": "#ee9800",
+            "surface-tint": "#4fdbc8",
+            "outline": "#859490",
+            "surface-highest": "#383A40",
+            "outline-variant": "#3c4947",
+            "surface-variant": "#343538",
+            "on-tertiary-fixed-variant": "#5516be",
+            "on-primary-container": "#00423b",
+            "error": "#ffb4ab",
+            "secondary": "#ffb95f",
+            "on-background": "#e3e2e6",
+            "on-secondary-fixed": "#2a1700",
+            "urgent": "#EF4444",
+            "tertiary": "#d0bcff",
+            "surface-sidebar": "#2B2D31",
+            "text-primary": "#F2F3F5",
+            "surface-elevated": "#313338",
+            "warning": "#F97316",
+            "surface-container": "#1f1f23",
+            "background": "#121316",
+            "border-line": "#3F4147",
+            "surface-container-highest": "#343538",
+            "on-primary-fixed": "#00201c",
+            "primary-variant": "#0F766E",
+            "tertiary-fixed-dim": "#d0bcff",
+            "on-tertiary-fixed": "#23005c",
+            "tertiary-fixed": "#e9ddff",
+            "tertiary-container": "#b192ff",
+            "surface-dim": "#121316",
+            "text-muted": "#80848E",
+            "success": "#22C55E",
+            "surface-container-high": "#292a2d",
+            "on-tertiary-container": "#4700aa",
+            "primary": "#4fdbc8",
+            "secondary-fixed-dim": "#ffb95f",
+            "inverse-primary": "#006b5f",
+            "secondary-fixed": "#ffddb8",
+            "inverse-on-surface": "#2f3033",
+            "surface-container-low": "#1a1b1e",
+            "on-secondary-container": "#5b3800",
+            "primary-container": "#14b8a6",
+            "on-surface": "#e3e2e6",
+            "surface-container-lowest": "#0d0e11",
+            "on-secondary-fixed-variant": "#653e00",
+            "on-error-container": "#ffdad6",
+            "on-error": "#690005"
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="../../assets/css/style.css"/>
+</head>
+<body class="bg-background font-sans text-text-primary antialiased min-h-screen">
+  <!-- Top Channel Bar -->
+  <div class="sticky top-0 z-30 bg-surface-sidebar/95 backdrop-blur-md px-4 py-2.5 shadow-sm flex items-center justify-between border-b border-border-line/30">
+    <div class="flex items-center gap-2 min-w-0">
+      <a href="../tracker/home.html" class="w-9 h-9 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary active:bg-surface-elevated transition-colors">
+        <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+      </a>
+      <div class="flex flex-col min-w-0">
+        <div class="flex items-center gap-1.5 min-w-0">
+          <span class="material-symbols-outlined text-primary text-[18px] font-bold">tag</span>
+          <span class="text-sm font-bold text-text-primary tracking-tight truncate">general</span>
+          <span class="w-2 h-2 rounded-full bg-success ring-2 ring-surface-sidebar shrink-0"></span>
+        </div>
+        <span class="text-[10px] uppercase tracking-wider text-text-muted font-medium">Community Channel</span>
+      </div>
+    </div>
+    <span class="text-[11px] text-primary-fixed-dim bg-primary-container/20 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+      <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> 184 Online
+    </span>
+  </div>
+
+  <!-- Messages Stream -->
+  <main class="flex flex-col px-4 pt-4 pb-24 gap-3 bg-surface min-h-screen" id="general-messages-feed">
+    <div class="flex items-center justify-center my-1">
+      <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-high/60 text-text-muted text-[11px]">
+        <span class="material-symbols-outlined text-[13px]">calendar_today</span>
+        <span>Today • Discussion</span>
+      </div>
+    </div>
+
+    <!-- Message 1 -->
+    <div class="flex items-start gap-3 group">
+      <div class="w-10 h-10 rounded-full bg-primary-variant/30 flex items-center justify-center font-bold text-[13px] text-primary shadow-sm ring-2 ring-primary/40 shrink-0">
+        TA
+      </div>
+      <div class="flex flex-col min-w-0 flex-1">
+        <div class="flex items-center gap-2">
+          <span class="text-[14px] font-semibold text-text-primary">Tanvir Ahmed</span>
+          <span class="text-[11px] px-1.5 py-0.5 rounded bg-surface-container text-text-secondary">CSE '21</span>
+          <span class="text-[11px] text-text-muted ml-auto">2:38 PM</span>
+        </div>
+        <div class="bg-surface-elevated/70 text-text-primary rounded-2xl rounded-tl-sm px-3.5 py-2.5 mt-1 text-[14px] shadow-sm">
+          Bus 1 (Mirpur) just crossed Mirpur 10 roundabout. Super packed today because of EEE midterms!
+        </div>
+        <div class="flex items-center gap-1.5 mt-1.5">
+          <button class="reaction-pill active flex items-center gap-1 bg-primary-container/20 text-primary-fixed-dim px-2.5 py-0.5 rounded-full text-[12px] font-medium" onclick="toggleReaction(this)">
+            <span>🚌</span>
+            <span class="text-[11px] font-bold">4</span>
+          </button>
+          <button class="reaction-pill flex items-center gap-1 bg-surface-container-high text-text-secondary px-2.5 py-0.5 rounded-full text-[12px] font-medium" onclick="toggleReaction(this)">
+            <span>👍</span>
+            <span class="text-[11px]">7</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message 2: Admin Advisory -->
+    <div class="flex items-start gap-3 mt-2">
+      <div class="w-10 h-10 rounded-full bg-tertiary-container/30 flex items-center justify-center font-bold text-[13px] text-tertiary-fixed shadow-sm ring-2 ring-tertiary-container shrink-0">
+        RI
+      </div>
+      <div class="flex flex-col min-w-0 flex-1">
+        <div class="flex items-center gap-1.5">
+          <span class="text-[14px] font-semibold text-text-primary">Engr. Rafiqul Islam</span>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-tertiary-container text-on-tertiary uppercase">ADMIN</span>
+          <span class="text-[11px] text-text-muted ml-auto">2:41 PM</span>
+        </div>
+        <div class="bg-surface-container-high text-text-primary rounded-2xl rounded-tl-sm px-3.5 py-2.5 mt-1 text-[14px] shadow-sm space-y-1.5 border border-tertiary-container/20">
+          <div class="flex items-center gap-1.5 text-secondary text-[12px] font-medium">
+            <span class="material-symbols-outlined text-[16px]">departure_board</span>
+            <span>Official Transport Advisory</span>
+          </div>
+          <p class="leading-relaxed">
+            Double-decker Bus 3 (Uttara route) has an additional feeder trip dispatched at <span class="font-semibold text-primary">3:15 PM</span> from AUST Gate 2.
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bottom Message Input Bar -->
+  <div class="fixed bottom-0 max-w-[430px] w-full z-40 bg-surface-sidebar/95 backdrop-blur-md px-4 py-2.5 shadow-2xl border-t border-border-line/30">
+    <form id="general-chat-form" onsubmit="event.preventDefault(); sendGeneralMessage();" class="flex items-center gap-2">
+      <button type="button" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-full bg-surface-highest text-text-secondary">
+        <span class="material-symbols-outlined text-[20px]">add</span>
+      </button>
+      <div class="flex-1 min-w-0 flex items-center bg-surface-highest rounded-2xl px-3.5 py-1.5 focus-within:ring-2 focus-within:ring-primary/40">
+        <input id="general-chat-input" autocomplete="off" class="w-full bg-transparent text-sm text-text-primary placeholder:text-text-muted focus:outline-none" placeholder="Message #general" type="text"/>
+      </div>
+      <button type="submit" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-2xl bg-primary-container hover:bg-primary text-on-primary-container shadow-md">
+        <span class="material-symbols-outlined text-[20px] font-bold">send</span>
+      </button>
+    </form>
+  </div>
+
+  <script src="../../assets/js/chat.js"></script>
+</body>
+</html>

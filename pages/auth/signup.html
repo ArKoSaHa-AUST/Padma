@@ -1,0 +1,194 @@
+<!-- Padma - Sign Up Page -->
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+  <meta content="mobile_blank" name="shell-type"/>
+  <title>Padma - Sign Up</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-bright": "#38393c",
+            "on-secondary": "#472a00",
+            "surface-container-highest": "#343538",
+            "secondary-fixed": "#ffddb8",
+            "secondary-fixed-dim": "#ffb95f",
+            "on-tertiary-fixed": "#23005c",
+            "warning": "#F97316",
+            "border-line": "#3F4147",
+            "on-background": "#e3e2e6",
+            "surface-dim": "#121316",
+            "error": "#ffb4ab",
+            "surface-container-lowest": "#0d0e11",
+            "inverse-surface": "#e3e2e6",
+            "background": "#121316",
+            "on-tertiary-container": "#4700aa",
+            "text-primary": "#F2F3F5",
+            "primary-fixed": "#71f8e4",
+            "on-error": "#690005",
+            "on-primary-fixed": "#00201c",
+            "text-muted": "#80848E",
+            "urgent": "#EF4444",
+            "surface-variant": "#343538",
+            "on-secondary-container": "#5b3800",
+            "tertiary-fixed": "#e9ddff",
+            "on-tertiary-fixed-variant": "#5516be",
+            "secondary-container": "#ee9800",
+            "primary-container": "#14b8a6",
+            "on-primary-fixed-variant": "#005048",
+            "surface-tint": "#4fdbc8",
+            "on-primary": "#003731",
+            "surface-container": "#1f1f23",
+            "surface-container-high": "#292a2d",
+            "on-tertiary": "#3c0091",
+            "on-primary-container": "#00423b",
+            "success": "#22C55E",
+            "surface-container-low": "#1a1b1e",
+            "primary-variant": "#0F766E",
+            "text-secondary": "#B5BAC1",
+            "primary-fixed-dim": "#4fdbc8",
+            "on-secondary-fixed": "#2a1700",
+            "primary": "#4fdbc8",
+            "inverse-on-surface": "#2f3033",
+            "outline-variant": "#3c4947",
+            "on-surface": "#e3e2e6",
+            "outline": "#859490",
+            "surface-sidebar": "#2B2D31",
+            "tertiary-container": "#b192ff",
+            "tertiary-fixed-dim": "#d0bcff",
+            "on-error-container": "#ffdad6",
+            "secondary": "#ffb95f",
+            "error-container": "#93000a",
+            "surface-elevated": "#313338",
+            "surface": "#121316",
+            "surface-highest": "#383A40",
+            "tertiary": "#d0bcff",
+            "on-secondary-fixed-variant": "#653e00",
+            "on-surface-variant": "#bbcac6",
+            "inverse-primary": "#006b5f"
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="../../assets/css/style.css"/>
+</head>
+<body class="bg-surface text-on-surface font-sans min-h-screen flex flex-col">
+  <main class="flex-1 flex flex-col relative w-full pt-6 pb-safe bg-surface">
+    <div class="relative z-10 flex flex-col w-full max-w-[420px] mx-auto px-4 pb-8">
+      <header class="flex flex-col items-center text-center pt-2 pb-4">
+        <h1 class="text-2xl font-bold text-text-primary tracking-tight">Padma</h1>
+        <p class="text-xs text-text-secondary mt-0.5">AUST Bus Tracking & Student Logistics</p>
+        <div class="w-full max-w-[310px] mt-4 p-1 bg-surface-sidebar rounded-full flex items-center justify-between shadow-inner">
+          <a class="flex-1 py-1.5 rounded-full text-center text-xs font-semibold text-text-secondary" href="signin.html">
+            Sign In
+          </a>
+          <a class="flex-1 py-1.5 rounded-full text-center text-xs font-semibold bg-surface-elevated text-primary shadow-sm" href="signup.html">
+            Sign Up
+          </a>
+        </div>
+      </header>
+
+      <form class="flex flex-col gap-4 bg-surface-elevated rounded-2xl p-5 shadow-xl border border-border-line/40" action="../tracker/home.html" onsubmit="handleAuthRegister();">
+        <div class="flex flex-col gap-1">
+          <label class="text-[11px] font-semibold tracking-wider uppercase text-text-secondary flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[15px] text-primary">person</span>
+            Full Name
+          </label>
+          <input class="w-full h-11 px-3.5 rounded-xl bg-surface-highest text-text-primary text-sm outline-none focus:ring-2 focus:ring-primary/40" placeholder="e.g. Tanvir Ahmed" required type="text"/>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="text-[11px] font-semibold tracking-wider uppercase text-text-secondary flex items-center gap-1">
+              <span class="material-symbols-outlined text-[15px] text-primary">badge</span>
+              Student ID
+            </label>
+            <input class="w-full h-11 px-3 rounded-xl bg-surface-highest text-text-primary text-sm outline-none focus:ring-2 focus:ring-primary/40" placeholder="21.02.04.xxx" required type="text"/>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-[11px] font-semibold tracking-wider uppercase text-text-secondary flex items-center gap-1">
+              <span class="material-symbols-outlined text-[15px] text-primary">domain</span>
+              Dept
+            </label>
+            <select class="w-full h-11 px-3 rounded-xl bg-surface-highest text-text-primary text-sm outline-none focus:ring-2 focus:ring-primary/40">
+              <option selected>CSE</option>
+              <option>EEE</option>
+              <option>ME</option>
+              <option>CE</option>
+              <option>IPE</option>
+              <option>TE</option>
+              <option>BBA</option>
+              <option>Arch</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-[11px] font-semibold tracking-wider uppercase text-text-secondary flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[15px] text-primary">mail</span>
+            Institutional Email
+          </label>
+          <input class="w-full h-11 px-3.5 rounded-xl bg-surface-highest text-text-primary text-sm outline-none focus:ring-2 focus:ring-primary/40" placeholder="student@aust.edu.bd" required type="email"/>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="text-[11px] font-semibold tracking-wider uppercase text-text-secondary flex items-center gap-1">
+              <span class="material-symbols-outlined text-[15px] text-primary">lock</span>
+              Password
+            </label>
+            <input class="w-full h-11 px-3 rounded-xl bg-surface-highest text-text-primary text-sm outline-none focus:ring-2 focus:ring-primary/40" placeholder="••••••••" required type="password"/>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-[11px] font-semibold tracking-wider uppercase text-text-secondary flex items-center gap-1">
+              <span class="material-symbols-outlined text-[15px] text-primary">lock_reset</span>
+              Confirm
+            </label>
+            <input class="w-full h-11 px-3 rounded-xl bg-surface-highest text-text-primary text-sm outline-none focus:ring-2 focus:ring-primary/40" placeholder="••••••••" required type="password"/>
+          </div>
+        </div>
+
+        <!-- Blood Group Selection -->
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-center justify-between">
+            <label class="text-[11px] font-semibold tracking-wider uppercase text-text-secondary flex items-center gap-1">
+              <span class="material-symbols-outlined text-[15px] text-urgent">water_drop</span>
+              Blood Group
+            </label>
+            <span class="text-[10px] text-text-muted">Campus Donor Desk</span>
+          </div>
+          <div class="grid grid-cols-4 gap-1.5" id="signup-blood-chips">
+            <button class="h-8 rounded-lg bg-surface-highest text-text-secondary text-xs font-semibold" onclick="selectSignUpBlood(this, 'A+')" type="button">A+</button>
+            <button class="h-8 rounded-lg bg-surface-highest text-text-secondary text-xs font-semibold" onclick="selectSignUpBlood(this, 'A-')" type="button">A-</button>
+            <button class="h-8 rounded-lg bg-surface-highest text-text-secondary text-xs font-semibold" onclick="selectSignUpBlood(this, 'B+')" type="button">B+</button>
+            <button class="h-8 rounded-lg bg-surface-highest text-text-secondary text-xs font-semibold" onclick="selectSignUpBlood(this, 'B-')" type="button">B-</button>
+            <button class="h-8 rounded-lg bg-primary-container text-on-primary-container font-semibold text-xs shadow" onclick="selectSignUpBlood(this, 'O+')" type="button">O+</button>
+            <button class="h-8 rounded-lg bg-surface-highest text-text-secondary text-xs font-semibold" onclick="selectSignUpBlood(this, 'O-')" type="button">O-</button>
+            <button class="h-8 rounded-lg bg-surface-highest text-text-secondary text-xs font-semibold" onclick="selectSignUpBlood(this, 'AB+')" type="button">AB+</button>
+            <button class="h-8 rounded-lg bg-surface-highest text-text-secondary text-xs font-semibold" onclick="selectSignUpBlood(this, 'AB-')" type="button">AB-</button>
+          </div>
+        </div>
+
+        <button class="w-full h-12 mt-1 rounded-xl bg-primary-container hover:bg-primary-variant text-text-primary font-bold flex items-center justify-center gap-2 shadow-lg transition-all" type="submit">
+          <span class="material-symbols-outlined text-[19px]">person_add</span>
+          <span>Create Account</span>
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <script src="../../assets/js/auth.js"></script>
+</body>
+</html>
