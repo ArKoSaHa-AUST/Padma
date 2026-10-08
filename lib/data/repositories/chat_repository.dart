@@ -6,6 +6,8 @@ import '../models/message_model.dart';
 import '../models/user_model.dart';
 import '../mock/mock_channels.dart';
 import '../mock/mock_messages.dart';
+import 'supabase_chat_repository.dart';
+
 
 abstract class ChatRepository {
   List<ChannelModel> getChannels();
@@ -182,10 +184,11 @@ class InMemoryChatRepository implements ChatRepository {
 }
 
 final chatRepositoryProvider = Provider<ChatRepository>((ref) {
-  final repo = InMemoryChatRepository();
+  final repo = SupabaseChatRepository();
   ref.onDispose(repo.dispose);
   return repo;
 });
+
 
 final channelListProvider = Provider<List<ChannelModel>>((ref) {
   final repo = ref.watch(chatRepositoryProvider);
