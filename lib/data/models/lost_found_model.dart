@@ -10,21 +10,23 @@ class LostFoundModel {
   final String title;
   final String description;
   final LostFoundType type;
-  final String location;
-  final String contact;
+  final String? location;
+  final String? contact;
   final String? imageUrl;
   final String authorName;
+  final String authorTag;
   final DateTime createdAt;
 
   const LostFoundModel({
     required this.id,
     required this.title,
     required this.description,
-    required this.type,
-    required this.location,
-    required this.contact,
+    this.type = LostFoundType.lost,
+    this.location,
+    this.contact,
     this.imageUrl,
     required this.authorName,
+    required this.authorTag,
     required this.createdAt,
   });
 }
