@@ -6,6 +6,8 @@ import '../models/admin_update_model.dart';
 import '../mock/mock_buses.dart';
 import '../mock/mock_routes.dart';
 import '../mock/mock_admin_updates.dart';
+import 'supabase_bus_repository.dart';
+
 
 abstract class BusRepository {
   List<RouteModel> getRoutes();
@@ -142,10 +144,11 @@ class InMemoryBusRepository implements BusRepository {
 }
 
 final busRepositoryProvider = Provider<BusRepository>((ref) {
-  final repo = InMemoryBusRepository();
+  final repo = SupabaseBusRepository();
   ref.onDispose(repo.dispose);
   return repo;
 });
+
 
 final selectedRouteIdProvider = StateProvider<String>((ref) => 'route_mirpur');
 
