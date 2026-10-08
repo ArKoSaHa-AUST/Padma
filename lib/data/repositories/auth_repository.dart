@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_model.dart';
 import '../mock/mock_users.dart';
+import 'supabase_auth_repository.dart';
+
 
 abstract class AuthRepository {
   UserModel? get currentUser;
@@ -137,10 +139,12 @@ class InMemoryAuthRepository implements AuthRepository {
 }
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return InMemoryAuthRepository();
+  return SupabaseAuthRepository();
 });
 
 final authStateProvider = StreamProvider<UserModel?>((ref) {
   final repo = ref.watch(authRepositoryProvider);
   return repo.authStateChanges;
 });
+
+
