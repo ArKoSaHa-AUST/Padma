@@ -247,16 +247,16 @@ class _ShortMessageModalState extends State<ShortMessageModal> {
                       child: const Icon(Icons.quickreply_rounded, color: PadmaTheme.primaryTeal, size: 20),
                     ),
                     const SizedBox(width: 12),
-                    Column(
+                    const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Dispatch Short Message',
                           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: PadmaTheme.textPrimary),
                         ),
                         Text(
                           'Broadcast stoppage wait alert to general students',
-                          style: const TextStyle(fontSize: 11, color: PadmaTheme.textMuted),
+                          style: TextStyle(fontSize: 11, color: PadmaTheme.textMuted),
                         ),
                       ],
                     ),
@@ -528,7 +528,7 @@ class _ShortMessageModalState extends State<ShortMessageModal> {
                     children: [
                       Container(
                         padding: const EdgeInsets.all(5),
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: PadmaTheme.primaryTealContainer,
                           shape: BoxShape.circle,
                         ),
@@ -685,7 +685,7 @@ class _ShortMessageModalState extends State<ShortMessageModal> {
                   );
                 },
                 icon: const Icon(Icons.forum_outlined, size: 14, color: PadmaTheme.textMuted),
-                label: Text('Open Full #${busChannel} Chat', style: const TextStyle(fontSize: 11.5, color: PadmaTheme.textMuted)),
+                label: Text('Open Full #$busChannel Chat', style: const TextStyle(fontSize: 11.5, color: PadmaTheme.textMuted)),
               ),
             ),
           ],

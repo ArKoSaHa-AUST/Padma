@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../data/services/supabase_service.dart';
 
 enum AdminBusStatus {
   onTime,
@@ -242,10 +243,66 @@ class AdminViewModel extends ChangeNotifier {
 
   int get activeFleetCount => _fleet.where((b) => b.status != AdminBusStatus.tripEnded).length;
 
+  AdminViewModel() {
+    _initSupabaseSync();
+  }
+
+  void _initSupabaseSync() async {
+    try {
+      final client = SupabaseService.instance.client;
+      // Fetch initial announcements
+      final annRes = await client.from('admin_announcements').select().order('created_at', ascending: false);
+      if (annRes.isNotEmpty) {
+        _announcements.clear();
+        for (final a in annRes) {
+          _announcements.add(AdminAnnouncementItem(
+            id: a['id'].toString(),
+            title: a['title'].toString(),
+            body: a['body'].toString(),
+            priority: a['priority']?.toString() ?? 'Standard',
+            targetRoute: a['target_route']?.toString() ?? 'All Routes',
+            timestamp: a['created_at'] != null ? DateTime.parse(a['created_at'].toString()) : DateTime.now(),
+            isPinned: a['is_pinned'] == true,
+          ));
+        }
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[AdminViewModel] Init Supabase sync error: $e');
+    }
+  }
+
+  void _syncBusToSupabase(AdminBusItem bus) async {
+    try {
+      final client = SupabaseService.instance.client;
+      await client.from('live_bus_locations').upsert({
+        'bus_id': bus.id,
+        'route_id': bus.id == 'bus_1' ? 'route_mirpur' : 'route_uttara',
+        'latitude': bus.latitude,
+        'longitude': bus.longitude,
+        'speed_kmh': bus.currentSpeed.toDouble(),
+        'heading': 0.0,
+        'eta_minutes': bus.etaMinutes,
+        'next_stop_name': bus.nextStop,
+        'next_stop_name_bn': bus.nextStop,
+        'current_stop_name': bus.currentStop,
+        'current_stop_index': bus.currentStopIndex,
+        'distance_progress': (bus.currentStopIndex / (bus.stoppages.length - 1)).clamp(0.0, 1.0),
+        'is_broadcasting': bus.isBroadcastingGps,
+        'passenger_count': bus.passengerCount,
+        'status': bus.status.name,
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      debugPrint('[AdminViewModel] _syncBusToSupabase error: $e');
+    }
+  }
+
   void toggleBusGps(String busId) {
     final index = _fleet.indexWhere((b) => b.id == busId || b.id == busId.replaceAll('-', '_'));
     if (index != -1) {
       _fleet[index].isBroadcastingGps = !_fleet[index].isBroadcastingGps;
+      _syncBusToSupabase(_fleet[index]);
       notifyListeners();
     }
   }
@@ -265,6 +322,7 @@ class AdminViewModel extends ChangeNotifier {
         bus.currentSpeed = 0;
         bus.etaMinutes = 0;
       }
+      _syncBusToSupabase(bus);
       notifyListeners();
     }
   }
@@ -273,6 +331,7 @@ class AdminViewModel extends ChangeNotifier {
     final index = _fleet.indexWhere((b) => b.id == busId || b.id == busId.replaceAll('-', '_'));
     if (index != -1) {
       _fleet[index].currentSpeed = speed;
+      _syncBusToSupabase(_fleet[index]);
       notifyListeners();
     }
   }
@@ -310,6 +369,7 @@ class AdminViewModel extends ChangeNotifier {
         final broadcastText = '📍 Bus reached **$stoppageName**. Heading towards next stoppage: **${bus.nextStop}**.';
         onBroadcastMessage?.call(channelId, broadcastText);
 
+        _syncBusToSupabase(bus);
         notifyListeners();
       }
     }
@@ -363,6 +423,20 @@ class AdminViewModel extends ChangeNotifier {
         onBroadcastMessage?.call(busChannel, '⏱️ **WAIT NOTICE**: $message');
       }
 
+      try {
+        SupabaseService.instance.client.from('admin_stoppage_wait_notices').insert({
+          'id': 'wait_${DateTime.now().millisecondsSinceEpoch}',
+          'bus_id': bus.id,
+          'stoppage_name': stoppageName,
+          'until_time': untilTime,
+          'message': message,
+          'created_at': DateTime.now().toIso8601String(),
+        });
+      } catch (e) {
+        debugPrint('[AdminViewModel] setStoppageWaitNotice DB error: $e');
+      }
+
+      _syncBusToSupabase(bus);
       notifyListeners();
     }
   }
@@ -406,10 +480,11 @@ class AdminViewModel extends ChangeNotifier {
     required String targetRoute,
     bool isPinned = false,
   }) {
+    final newId = 'ann_${DateTime.now().millisecondsSinceEpoch}';
     _announcements.insert(
       0,
       AdminAnnouncementItem(
-        id: 'ann_${DateTime.now().millisecondsSinceEpoch}',
+        id: newId,
         title: title,
         body: body,
         priority: priority,
@@ -418,11 +493,48 @@ class AdminViewModel extends ChangeNotifier {
         isPinned: isPinned,
       ),
     );
+
+    // Save to Supabase
+    try {
+      final client = SupabaseService.instance.client;
+      client.from('admin_announcements').insert({
+        'id': newId,
+        'title': title,
+        'body': body,
+        'priority': priority,
+        'target_route': targetRoute,
+        'is_pinned': isPinned,
+        'created_at': DateTime.now().toIso8601String(),
+      }).then((_) {}, onError: (_) {});
+
+      // Broadcast to messages table
+      client.from('messages').insert({
+        'id': 'msg_$newId',
+        'channel_id': 'announcements',
+        'sender_id': 'admin_1',
+        'sender_name': 'Padma Transport Office',
+        'sender_role': 'admin',
+        'badge_text': '$priority NOTICE',
+        'text': '📢 **$title**: $body',
+        'is_urgent': priority.toLowerCase() == 'urgent',
+        'is_pinned': isPinned,
+        'reactions': {'👍': 1},
+        'created_at': DateTime.now().toIso8601String(),
+      }).then((_) {}, onError: (_) {});
+    } catch (e) {
+      debugPrint('[AdminViewModel] Error inserting announcement: $e');
+    }
+
     notifyListeners();
   }
 
   void deleteAnnouncement(String id) {
     _announcements.removeWhere((a) => a.id == id);
+    try {
+      SupabaseService.instance.client.from('admin_announcements').delete().eq('id', id).then((_) {}, onError: (_) {});
+    } catch (e) {
+      debugPrint('[AdminViewModel] deleteAnnouncement error: $e');
+    }
     notifyListeners();
   }
 
@@ -473,6 +585,13 @@ class AdminViewModel extends ChangeNotifier {
       if (deleteMessage) {
         _reportedMessages.removeAt(index);
       }
+      try {
+        SupabaseService.instance.client.from('reported_messages').update({
+          'is_resolved': true,
+        }).eq('id', id).then((_) {}, onError: (_) {});
+      } catch (e) {
+        debugPrint('[AdminViewModel] resolveReport error: $e');
+      }
       notifyListeners();
     }
   }
@@ -503,6 +622,13 @@ class AdminViewModel extends ChangeNotifier {
     final index = _lostFoundItems.indexWhere((item) => item.id == id);
     if (index != -1) {
       _lostFoundItems[index].status = status;
+      try {
+        SupabaseService.instance.client.from('lost_found_items').update({
+          'status': status == 'Claimed' ? 'resolved' : 'active',
+        }).eq('id', id).then((_) {}, onError: (_) {});
+      } catch (e) {
+        debugPrint('[AdminViewModel] updateLostFoundStatus error: $e');
+      }
       notifyListeners();
     }
   }

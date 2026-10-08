@@ -236,9 +236,9 @@ class _AdminChannelsTabState extends State<AdminChannelsTab> {
         // 2. Active Channel Control Header
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: PadmaTheme.surfaceElevated,
-            border: const Border(bottom: BorderSide(color: PadmaTheme.borderLine)),
+            border: Border(bottom: BorderSide(color: PadmaTheme.borderLine)),
           ),
           child: Row(
             children: [
@@ -346,7 +346,7 @@ class _AdminChannelsTabState extends State<AdminChannelsTab> {
                       Icon(Icons.chat_bubble_outline_rounded, size: 48, color: PadmaTheme.textMuted.withValues(alpha: 0.4)),
                       const SizedBox(height: 12),
                       Text(
-                        'No messages in #${_selectedChannel} yet',
+                        'No messages in #$_selectedChannel yet',
                         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: PadmaTheme.textMuted),
                       ),
                       const SizedBox(height: 4),

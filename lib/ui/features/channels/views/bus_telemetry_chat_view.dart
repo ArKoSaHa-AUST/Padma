@@ -149,9 +149,9 @@ class _BusTelemetryChatViewState extends State<BusTelemetryChatView> {
           // 2. STOPPAGE DISPATCH UPDATE BAR (DROPDOWN + GREEN TICK BUTTON)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: PadmaTheme.surface,
-              border: const Border(bottom: BorderSide(color: PadmaTheme.borderLine)),
+              border: Border(bottom: BorderSide(color: PadmaTheme.borderLine)),
             ),
             child: Row(
               children: [
