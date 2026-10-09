@@ -945,7 +945,57 @@ class ChannelsViewModel extends ChangeNotifier {
     } else if (channelId == 'padma-2' || channelId == 'bus-2-uttara') {
       _padma2Messages.removeWhere((m) => m.id == messageId);
     }
+    
+    try {
+      SupabaseService.instance.client.from('messages').delete().eq('id', messageId).then((_) {}, onError: (_) {});
+    } catch (e) {
+      debugPrint('[ChannelsViewModel] deleteMessage Supabase error: $e');
+    }
     notifyListeners();
+  }
+
+  void editMessage(String channelId, String messageId, String newText) {
+    List<ChatMessage> targetList;
+    if (channelId == 'rules-and-regulation' || channelId == 'general') {
+      targetList = _rulesMessages;
+    } else if (channelId == 'announcements') {
+      targetList = _announcementsMessages;
+    } else if (channelId == 'padma-1' || channelId == 'bus-1-mirpur') {
+      targetList = _padma1Messages;
+    } else if (channelId == 'padma-2' || channelId == 'bus-2-uttara') {
+      targetList = _padma2Messages;
+    } else {
+      targetList = _rulesMessages;
+    }
+
+    final idx = targetList.indexWhere((m) => m.id == messageId);
+    if (idx != -1) {
+      final old = targetList[idx];
+      targetList[idx] = ChatMessage(
+        id: old.id,
+        senderName: old.senderName,
+        senderRole: old.senderRole,
+        senderTag: old.senderTag,
+        avatarInitials: old.avatarInitials,
+        badgeText: old.badgeText,
+        text: newText.trim(),
+        timestamp: old.timestamp,
+        reactions: old.reactions,
+        isTelemetry: old.isTelemetry,
+        recipientId: old.recipientId,
+      );
+
+      try {
+        SupabaseService.instance.client.from('messages').update({
+          'text': newText.trim(),
+          'updated_at': DateTime.now().toIso8601String(),
+        }).eq('id', messageId).then((_) {}, onError: (_) {});
+      } catch (e) {
+        debugPrint('[ChannelsViewModel] editMessage Supabase error: $e');
+      }
+
+      notifyListeners();
+    }
   }
 
   void broadcastDispatchMessage(String channelId, String text, {String? senderName, String? senderRole, String? badgeText}) {
