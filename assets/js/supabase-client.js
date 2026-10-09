@@ -105,6 +105,24 @@ const SupabaseDb = {
     }
   },
 
+  async delete(table, filterQuery) {
+    try {
+      const res = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${table}?${filterQuery}`, {
+        method: 'DELETE',
+        headers: this.getHeaders()
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error(`[SupabaseDb.delete failed on ${table}]:`, errText);
+        throw new Error(errText);
+      }
+      return true;
+    } catch (err) {
+      console.error(`[SupabaseDb.delete error on ${table}]:`, err);
+      return false;
+    }
+  },
+
   // -----------------------------------------------------------------
   // 1. Authentication & Profiles
   // -----------------------------------------------------------------
@@ -161,6 +179,14 @@ const SupabaseDb = {
     return await this.insert('blood_requests', req);
   },
 
+  async updateBloodRequest(id, updateData) {
+    return await this.update('blood_requests', `id=eq.${encodeURIComponent(id)}`, updateData);
+  },
+
+  async deleteBloodRequest(id) {
+    return await this.delete('blood_requests', `id=eq.${encodeURIComponent(id)}`);
+  },
+
   // -----------------------------------------------------------------
   // 4. Student Assistance - Lost and Found
   // -----------------------------------------------------------------
@@ -172,8 +198,60 @@ const SupabaseDb = {
     return await this.insert('lost_found_items', item);
   },
 
+  async updateLostFoundItem(id, updateData) {
+    return await this.update('lost_found_items', `id=eq.${encodeURIComponent(id)}`, updateData);
+  },
+
+  async deleteLostFoundItem(id) {
+    return await this.delete('lost_found_items', `id=eq.${encodeURIComponent(id)}`);
+  },
+
   // -----------------------------------------------------------------
-  // 5. Submit Grievance / Feedback Document
+  // 5. Post Responses (Blood Donors & Lost/Found Claims)
+  // -----------------------------------------------------------------
+  async fetchPostResponses(postId = null) {
+    const params = postId 
+      ? `post_id=eq.${encodeURIComponent(postId)}&order=created_at.desc`
+      : 'order=created_at.desc';
+    return await this.query('post_responses', params);
+  },
+
+  async postPostResponse(response) {
+    return await this.insert('post_responses', response);
+  },
+
+  async updatePostResponse(id, updateData) {
+    return await this.update('post_responses', `id=eq.${encodeURIComponent(id)}`, updateData);
+  },
+
+  async deletePostResponse(id) {
+    return await this.delete('post_responses', `id=eq.${encodeURIComponent(id)}`);
+  },
+
+  // -----------------------------------------------------------------
+  // 5.1 Post Comments (Lost & Found Comments)
+  // -----------------------------------------------------------------
+  async fetchPostComments(postId = null) {
+    const params = postId 
+      ? `post_id=eq.${encodeURIComponent(postId)}&order=created_at.asc`
+      : 'order=created_at.asc';
+    return await this.query('post_comments', params);
+  },
+
+  async postComment(comment) {
+    return await this.insert('post_comments', comment);
+  },
+
+  async updateComment(id, updateData) {
+    return await this.update('post_comments', `id=eq.${encodeURIComponent(id)}`, updateData);
+  },
+
+  async deleteComment(id) {
+    return await this.delete('post_comments', `id=eq.${encodeURIComponent(id)}`);
+  },
+
+  // -----------------------------------------------------------------
+  // 6. Submit Grievance / Feedback Document
   // -----------------------------------------------------------------
   async fetchComplaints() {
     return await this.query('feedback', 'order=created_at.desc');
@@ -184,7 +262,7 @@ const SupabaseDb = {
   },
 
   // -----------------------------------------------------------------
-  // 6. Notifications & Proximity Alerts
+  // 7. Notifications & Proximity Alerts
   // -----------------------------------------------------------------
   async fetchNotifications() {
     return await this.query('notifications', 'order=created_at.desc');
@@ -199,7 +277,7 @@ const SupabaseDb = {
   },
 
   // -----------------------------------------------------------------
-  // 7. Live Bus Telemetry, Routes & Stops
+  // 8. Live Bus Telemetry, Routes & Stops
   // -----------------------------------------------------------------
   async fetchLiveBusLocations() {
     return await this.query('live_bus_locations', 'select=*');
@@ -215,7 +293,50 @@ const SupabaseDb = {
 
   async fetchRouteStops() {
     return await this.query('route_stops', 'order=stop_order.asc');
+  },
+
+  // -----------------------------------------------------------------
+  // 9. Real-time Channel Setup & Local Broadcast Bus
+  // -----------------------------------------------------------------
+  initRealtimeListeners(onChangeCallback) {
+    // 1. Cross-tab BroadcastChannel
+    if (typeof window !== 'undefined' && window.BroadcastChannel) {
+      try {
+        const bc = new BroadcastChannel('padma_realtime_broadcast');
+        bc.onmessage = (event) => {
+          if (onChangeCallback) onChangeCallback(event.data);
+        };
+        window.padmaBroadcastChannel = bc;
+      } catch (e) {
+        console.warn('BroadcastChannel error:', e);
+      }
+    }
+
+    // 2. Supabase Realtime WebSocket client (if active)
+    if (supabaseClient && supabaseClient.channel) {
+      try {
+        supabaseClient.channel('padma_realtime_postgres')
+          .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
+            if (onChangeCallback) onChangeCallback(payload);
+          })
+          .subscribe();
+      } catch (e) {
+        console.warn('Supabase realtime subscription notice:', e);
+      }
+    }
+  },
+
+  broadcastChange(type, data = {}) {
+    // Broadcast across windows / tabs
+    if (window.padmaBroadcastChannel) {
+      try {
+        window.padmaBroadcastChannel.postMessage({ type, data, timestamp: Date.now() });
+      } catch (e) {}
+    }
+    // Dispatch in current window
+    window.dispatchEvent(new CustomEvent('padma:realtime-update', { detail: { type, data } }));
   }
 };
 
 window.SupabaseDb = SupabaseDb;
+

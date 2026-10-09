@@ -1,6 +1,6 @@
 /**
- * Padma - Core SPA Application Router, Global UI Controller & Notification Dispatcher
- * Dynamic Supabase Integration with notifications and admin_announcements
+ * Padma - Core SPA Application Router, Global UI Controller & Realtime Dispatcher
+ * Dynamic Supabase Integration with live real-time sync, notifications and response tracking
  */
 
 let activeScreen = 'signin';
@@ -29,6 +29,14 @@ function initializeNotificationsDatabase() {
       },
       {
         id: 'notif_3',
+        type: 'donor_response',
+        title: '🩸 New Donor Volunteer!',
+        body: 'Padma Student (@Padma_CSE_4-1_Mirpur10) volunteered to donate O+ blood for your DMCH request. Contact: 01711-223344',
+        timestamp: Date.now() - 3600000 * 1.5,
+        isRead: false
+      },
+      {
+        id: 'notif_4',
         type: 'announcement',
         title: 'Midterm Examination Schedule Released',
         body: 'Supplementary feeder trips scheduled for both Padma 1 and Padma 2 from Gate 2.',
@@ -36,7 +44,7 @@ function initializeNotificationsDatabase() {
         isRead: false
       },
       {
-        id: 'notif_4',
+        id: 'notif_5',
         type: 'rules',
         title: 'AUST Campus Transit Policy 2026 Updated',
         body: 'Mandatory digital ID verification and seat reservation policy announced in #rules-and-regulation.',
@@ -123,6 +131,74 @@ window.dispatchMentionNotification = async function(targetTag, channel, messageT
     if (window.showAppToast) {
       window.showAppToast(`You were mentioned in #${channel} by @${senderTag}`);
     }
+  }
+};
+
+window.dispatchDonorResponseNotification = async function(response, bloodReq) {
+  const notifs = getNotifications();
+  const notifId = 'notif_donor_resp_' + Date.now();
+  const newNotif = {
+    id: notifId,
+    type: 'donor_response',
+    title: `🩸 Donor Volunteer for ${bloodReq.bloodGroup} Blood!`,
+    body: `${response.responderName} (@${response.responderTag}) volunteered to donate: "${response.notes || response.availability}". Phone: ${response.contactNumber}`,
+    timestamp: Date.now(),
+    isRead: false
+  };
+  notifs.unshift(newNotif);
+  saveNotifications(notifs);
+
+  if (typeof SupabaseDb !== 'undefined') {
+    try {
+      await SupabaseDb.postNotification({
+        id: notifId,
+        user_id: bloodReq.authorId || null,
+        title: newNotif.title,
+        body: newNotif.body,
+        type: 'donor_response',
+        is_read: false
+      });
+    } catch (e) {
+      console.warn('Post donor notification warning:', e);
+    }
+  }
+
+  if (window.showAppToast) {
+    window.showAppToast(`🩸 New donor response from ${response.responderName}! Check Responses channel.`, true);
+  }
+};
+
+window.dispatchLostFoundClaimNotification = async function(response, item) {
+  const notifs = getNotifications();
+  const notifId = 'notif_lf_resp_' + Date.now();
+  const newNotif = {
+    id: notifId,
+    type: 'lost_found_response',
+    title: `🔍 Response on "${item.title}"`,
+    body: `${response.responderName} (@${response.responderTag}) submitted a claim/report. Contact: ${response.contactNumber}`,
+    timestamp: Date.now(),
+    isRead: false
+  };
+  notifs.unshift(newNotif);
+  saveNotifications(notifs);
+
+  if (typeof SupabaseDb !== 'undefined') {
+    try {
+      await SupabaseDb.postNotification({
+        id: notifId,
+        user_id: item.authorId || null,
+        title: newNotif.title,
+        body: newNotif.body,
+        type: 'lost_found_response',
+        is_read: false
+      });
+    } catch (e) {
+      console.warn('Post LF notification warning:', e);
+    }
+  }
+
+  if (window.showAppToast) {
+    window.showAppToast(`New response on notice "${item.title}" from ${response.responderName}`);
   }
 };
 
@@ -302,6 +378,16 @@ async function renderNotificationsFeed() {
       borderClass = 'border-urgent';
       iconBg = 'bg-urgent/15 text-urgent';
       targetScreen = 'blood-requests';
+    } else if (n.type === 'donor_response') {
+      icon = 'volunteer_activism';
+      borderClass = 'border-urgent';
+      iconBg = 'bg-urgent/20 text-urgent';
+      targetScreen = 'post-responses';
+    } else if (n.type === 'lost_found_response') {
+      icon = 'mark_chat_read';
+      borderClass = 'border-warning';
+      iconBg = 'bg-warning/20 text-warning';
+      targetScreen = 'post-responses';
     } else if (n.type === 'mention') {
       icon = 'alternate_email';
       borderClass = 'border-secondary';
@@ -397,12 +483,19 @@ function switchScreen(screenId) {
     renderBloodRequestsFeed();
   } else if (screenId === 'lost-found') {
     renderLostFoundFeed();
+  } else if (screenId === 'post-responses') {
+    renderPostResponsesFeed();
   } else if (screenId === 'submit-complain') {
     renderComplaintsAdminFeed();
   } else if (screenId === 'notifications') {
     renderNotificationsFeed();
   } else if (screenId === 'profile') {
     updateProfileUI();
+  }
+
+  // Attach mention listeners to inputs
+  if (window.attachMentionsToAllInputs) {
+    window.attachMentionsToAllInputs();
   }
 
   // Update active bottom nav button
@@ -416,6 +509,7 @@ function switchScreen(screenId) {
 
   updateProfileUI();
   updateNotificationBadge();
+  if (window.updateResponsesBadge) window.updateResponsesBadge();
 }
 
 // Drawer Navigation
@@ -428,6 +522,7 @@ function openDrawer() {
     panel.classList.remove('-translate-x-full');
     panel.classList.add('translate-x-0');
   }
+  if (window.updateResponsesBadge) window.updateResponsesBadge();
 }
 
 function closeDrawer() {
@@ -576,6 +671,29 @@ function formatTimeAgo(timestamp) {
   return `${Math.floor(diffHours / 24)}d ago`;
 }
 
+// -------------------------------------------------------------
+// Real-Time Listener & Background Sync Controller
+// -------------------------------------------------------------
+function handleRealtimeSync(eventPayload) {
+  // Seamlessly update current active screen without refreshing
+  if (activeScreen === 'blood-requests' && window.renderBloodRequestsFeed) {
+    window.renderBloodRequestsFeed();
+  } else if (activeScreen === 'lost-found' && window.renderLostFoundFeed) {
+    window.renderLostFoundFeed();
+  } else if (activeScreen === 'post-responses' && window.renderPostResponsesFeed) {
+    window.renderPostResponsesFeed();
+  } else if ((activeScreen === 'padma-1' || activeScreen === 'padma-2' || activeScreen === 'rules-and-regulation' || activeScreen === 'announcements') && window.renderChannelFeed) {
+    window.renderChannelFeed(activeScreen);
+  } else if (activeScreen === 'contact-admin' && window.renderContactAdminFeed) {
+    window.renderContactAdminFeed();
+  } else if (activeScreen === 'notifications' && window.renderNotificationsFeed) {
+    window.renderNotificationsFeed();
+  }
+
+  updateNotificationBadge();
+  if (window.updateResponsesBadge) window.updateResponsesBadge();
+}
+
 // Global App Initialization
 document.addEventListener('DOMContentLoaded', () => {
   const drawerBtn = document.getElementById('open-drawer-btn');
@@ -593,4 +711,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
   updateChannelPermissions();
   syncNotificationsFromSupabase();
+
+  // Initialize Real-time bus & listeners
+  if (typeof SupabaseDb !== 'undefined' && SupabaseDb.initRealtimeListeners) {
+    SupabaseDb.initRealtimeListeners(handleRealtimeSync);
+  }
+
+  window.addEventListener('padma:realtime-update', (e) => {
+    handleRealtimeSync(e.detail);
+  });
+
+  // Background non-intrusive sync every 2.5 seconds (zero-refresh live updates)
+  setInterval(() => {
+    if (activeScreen && activeScreen !== 'signin') {
+      if (activeScreen === 'padma-1' || activeScreen === 'padma-2' || activeScreen === 'rules-and-regulation' || activeScreen === 'announcements') {
+        if (window.renderChannelFeed) window.renderChannelFeed(activeScreen);
+      } else if (activeScreen === 'blood-requests' && window.renderBloodRequestsFeed) {
+        window.renderBloodRequestsFeed();
+      } else if (activeScreen === 'lost-found' && window.renderLostFoundFeed) {
+        window.renderLostFoundFeed();
+      } else if (activeScreen === 'post-responses' && window.renderPostResponsesFeed) {
+        window.renderPostResponsesFeed();
+      } else if (activeScreen === 'contact-admin' && window.renderContactAdminFeed) {
+        window.renderContactAdminFeed();
+      }
+    }
+    updateNotificationBadge();
+    if (window.updateResponsesBadge) window.updateResponsesBadge();
+  }, 2500);
+
+  if (window.attachMentionsToAllInputs) {
+    window.attachMentionsToAllInputs();
+  }
 });

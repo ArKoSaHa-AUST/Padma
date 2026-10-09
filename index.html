@@ -204,10 +204,14 @@
           <span id="hud-bus-speed" class="text-[11px] text-text-muted font-mono">34 km/h</span>
         </div>
 
-        <div class="absolute top-4 right-4 z-10">
-          <button id="switch-bus-btn" onclick="openBusSelectorModal()" class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-sidebar/90 backdrop-blur-md text-text-primary active:scale-95 transition-all shadow-md border border-border-line/40">
+        <div class="absolute top-4 right-4 z-10 flex items-center gap-1.5">
+          <button id="view-schedule-btn" onclick="openBusScheduleModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-sidebar/90 backdrop-blur-md text-text-primary active:scale-95 transition-all shadow-md border border-border-line/40">
+            <span class="material-symbols-outlined text-[15px] text-warning">calendar_month</span>
+            <span class="text-xs font-bold">Schedule</span>
+          </button>
+          <button id="switch-bus-btn" onclick="openBusSelectorModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-sidebar/90 backdrop-blur-md text-text-primary active:scale-95 transition-all shadow-md border border-border-line/40">
             <span class="w-2 h-2 rounded-full bg-primary"></span>
-            <span class="text-xs font-bold">Switch Route</span>
+            <span class="text-xs font-bold">Switch</span>
             <span class="material-symbols-outlined text-[16px] text-text-secondary">expand_more</span>
           </button>
         </div>
@@ -230,7 +234,7 @@
       <!-- Floating ETA Card -->
       <div class="relative z-20 px-4 -mt-7">
         <div id="eta-summary-card" class="w-full bg-surface-elevated rounded-2xl p-4 shadow-xl cursor-pointer active:brightness-105 transition-all border border-border-line/40" onclick="switchScreen('padma-1')">
-          <div class="flex items-start justify-between gap-3 mb-3">
+          <div class="flex items-start justify-between gap-3 mb-2">
             <div>
               <span class="text-[10px] uppercase tracking-wider text-text-muted font-bold">Estimated Arrival</span>
               <div class="flex items-baseline gap-1 mt-0.5">
@@ -246,6 +250,11 @@
               <span id="eta-checkpoint-title" class="font-bold text-sm text-text-primary truncate max-w-[160px]">Mirpur 10</span>
               <span id="eta-sub-text" class="text-[11px] text-text-secondary truncate max-w-[160px]">Arriving at Mirpur 10 Roundabout</span>
             </div>
+          </div>
+
+          <!-- Dynamic 1st/2nd Bus Order Badge -->
+          <div id="active-bus-order-badge" class="mb-2">
+            <span class="px-2 py-0.5 rounded-md bg-primary/20 text-primary text-[10px] font-extrabold border border-primary/40">1ST BUS • 06:45 AM DEPARTURE</span>
           </div>
 
           <!-- Timeline Track -->
@@ -317,18 +326,23 @@
           </button>
         </div>
 
-        <div class="grid grid-cols-3 gap-2.5">
-          <button onclick="switchScreen('blood-requests')" class="p-3 rounded-2xl bg-surface-elevated hover:brightness-105 border border-border-line/40 flex flex-col items-center text-center gap-1.5">
-            <span class="material-symbols-outlined text-urgent text-[22px]">water_drop</span>
-            <span class="text-[11px] font-bold text-text-primary">Blood Desk</span>
+        <div class="grid grid-cols-4 gap-2">
+          <button onclick="switchScreen('blood-requests')" class="p-2.5 rounded-2xl bg-surface-elevated hover:brightness-105 border border-border-line/40 flex flex-col items-center text-center gap-1 transition-all active:scale-95">
+            <span class="material-symbols-outlined text-urgent text-[20px]">water_drop</span>
+            <span class="text-[10px] font-bold text-text-primary">Blood Desk</span>
           </button>
-          <button onclick="switchScreen('lost-found')" class="p-3 rounded-2xl bg-surface-elevated hover:brightness-105 border border-border-line/40 flex flex-col items-center text-center gap-1.5">
-            <span class="material-symbols-outlined text-warning text-[22px]">find_in_page</span>
-            <span class="text-[11px] font-bold text-text-primary">Lost & Found</span>
+          <button onclick="switchScreen('lost-found')" class="p-2.5 rounded-2xl bg-surface-elevated hover:brightness-105 border border-border-line/40 flex flex-col items-center text-center gap-1 transition-all active:scale-95">
+            <span class="material-symbols-outlined text-warning text-[20px]">find_in_page</span>
+            <span class="text-[10px] font-bold text-text-primary">Lost & Found</span>
           </button>
-          <button onclick="switchScreen('contact-admin')" class="p-3 rounded-2xl bg-surface-elevated hover:brightness-105 border border-border-line/40 flex flex-col items-center text-center gap-1.5">
-            <span class="material-symbols-outlined text-primary text-[22px]">support_agent</span>
-            <span class="text-[11px] font-bold text-text-primary">Contact Admin</span>
+          <button onclick="switchScreen('post-responses')" class="p-2.5 rounded-2xl bg-surface-elevated hover:brightness-105 border border-border-line/40 flex flex-col items-center text-center gap-1 relative transition-all active:scale-95">
+            <span class="material-symbols-outlined text-primary text-[20px]">mark_chat_read</span>
+            <span class="text-[10px] font-bold text-text-primary">Responses</span>
+            <span id="responses-badge" class="hidden absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-urgent text-white text-[9px] font-bold animate-pulse"></span>
+          </button>
+          <button onclick="switchScreen('contact-admin')" class="p-2.5 rounded-2xl bg-surface-elevated hover:brightness-105 border border-border-line/40 flex flex-col items-center text-center gap-1 transition-all active:scale-95">
+            <span class="material-symbols-outlined text-tertiary text-[20px]">support_agent</span>
+            <span class="text-[10px] font-bold text-text-primary">Admin Chat</span>
           </button>
         </div>
       </div>
@@ -433,19 +447,11 @@
         <!-- Rendered via JS -->
       </div>
 
-      <!-- Quick Pings & Input -->
+      <!-- Chat Input (Messenger-style @mention) -->
       <div class="fixed bottom-0 max-w-[430px] w-full z-40 bg-surface-sidebar/95 backdrop-blur-lg px-4 py-2.5 shadow-2xl border-t border-border-line/30">
-        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-2">
-          <button onclick="document.getElementById('padma1-chat-input').value = 'At Mirpur 10 now, boarding in progress 🚦'; sendChatMessage('padma-1', 'padma1-chat-input');" class="px-2.5 py-1 rounded-full bg-surface-elevated hover:bg-surface-highest text-text-secondary text-[11px] font-semibold whitespace-nowrap active:scale-95 transition-transform">
-            📍 At Mirpur 10
-          </button>
-          <button onclick="document.getElementById('padma1-chat-input').value = 'Plenty of window seats on upper deck! 💺'; sendChatMessage('padma-1', 'padma1-chat-input');" class="px-2.5 py-1 rounded-full bg-surface-elevated hover:bg-surface-highest text-text-secondary text-[11px] font-semibold whitespace-nowrap active:scale-95 transition-transform">
-            💺 Seats Available
-          </button>
-        </div>
         <form onsubmit="event.preventDefault(); sendChatMessage('padma-1', 'padma1-chat-input');" class="flex items-center gap-2">
           <div class="flex-1 min-w-0 flex items-center bg-surface-highest rounded-2xl px-3.5 py-2">
-            <input id="padma1-chat-input" autocomplete="off" class="w-full bg-transparent text-xs text-text-primary placeholder:text-text-muted focus:outline-none" placeholder="Message #padma-1 (@mention enabled)..." type="text"/>
+            <input id="padma1-chat-input" autocomplete="off" class="w-full bg-transparent text-xs text-text-primary placeholder:text-text-muted focus:outline-none" placeholder="Message #padma-1 (Type @ to mention)..." type="text"/>
           </div>
           <button type="submit" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-2xl bg-primary-container text-on-primary-container shadow-md active:scale-95 transition-transform">
             <span class="material-symbols-outlined text-[20px]">send</span>
@@ -483,7 +489,7 @@
       <div class="fixed bottom-0 max-w-[430px] w-full z-40 bg-surface-sidebar/95 backdrop-blur-lg px-4 py-2.5 shadow-2xl border-t border-border-line/30">
         <form onsubmit="event.preventDefault(); sendChatMessage('padma-2', 'padma2-chat-input');" class="flex items-center gap-2">
           <div class="flex-1 min-w-0 flex items-center bg-surface-highest rounded-2xl px-3.5 py-2">
-            <input id="padma2-chat-input" autocomplete="off" class="w-full bg-transparent text-xs text-text-primary placeholder:text-text-muted focus:outline-none" placeholder="Message #padma-2 (@mention enabled)..." type="text"/>
+            <input id="padma2-chat-input" autocomplete="off" class="w-full bg-transparent text-xs text-text-primary placeholder:text-text-muted focus:outline-none" placeholder="Message #padma-2 (Type @ to mention)..." type="text"/>
           </div>
           <button type="submit" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-2xl bg-primary-container text-on-primary-container shadow-md active:scale-95 transition-transform">
             <span class="material-symbols-outlined text-[20px]">send</span>
@@ -551,6 +557,55 @@
           <span class="material-symbols-outlined text-[20px]">add</span>
           <span>Post Notice</span>
         </button>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SCREEN 8: POST RESPONSES CHANNEL           -->
+    <!-- ========================================== -->
+    <section id="screen-post-responses" class="screen-view pt-14 pb-20">
+      <div class="sticky top-14 z-30 flex items-center justify-between px-4 py-3 bg-surface-sidebar/95 backdrop-blur-md border-b border-border-line/30">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button class="w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container hover:bg-surface-elevated text-text-secondary active:scale-95 transition-transform" onclick="switchScreen('home')">
+            <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+          </button>
+          <div class="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-primary text-[20px]">mark_chat_read</span>
+          </div>
+          <div class="flex flex-col min-w-0">
+            <span class="font-bold text-sm text-text-primary truncate">Post Responses</span>
+            <span class="text-[10px] uppercase font-bold text-text-muted">Blood Donors & Item Claims</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-success/15 text-success text-[10px] font-bold">
+          <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
+          <span>LIVE</span>
+        </div>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="px-4 py-2.5 bg-surface-sidebar/60 border-b border-border-line/30 overflow-x-auto no-scrollbar">
+        <div class="flex items-center gap-1.5 min-w-max">
+          <button onclick="filterResponsesTab('all', this)" class="responses-tab-btn px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all bg-primary-container text-on-primary-container shadow">
+            All Responses
+          </button>
+          <button onclick="filterResponsesTab('blood', this)" class="responses-tab-btn px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all bg-surface-elevated text-text-secondary hover:text-text-primary">
+            🩸 Blood Donors
+          </button>
+          <button onclick="filterResponsesTab('lost_found', this)" class="responses-tab-btn px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all bg-surface-elevated text-text-secondary hover:text-text-primary">
+            🔍 Lost & Found
+          </button>
+          <button onclick="filterResponsesTab('received', this)" class="responses-tab-btn px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all bg-surface-elevated text-text-secondary hover:text-text-primary">
+            📬 Received on My Posts
+          </button>
+          <button onclick="filterResponsesTab('sent', this)" class="responses-tab-btn px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all bg-surface-elevated text-text-secondary hover:text-text-primary">
+            📤 My Sent Offers
+          </button>
+        </div>
+      </div>
+
+      <div class="p-4 space-y-3.5 pb-24" id="post-responses-feed">
+        <!-- Rendered via JS -->
       </div>
     </section>
 
@@ -819,6 +874,8 @@
 
         <!-- SIGN IN BOX -->
         <div id="signin-box" class="bg-surface-elevated rounded-2xl p-5 shadow-xl flex flex-col gap-4 border border-border-line/40">
+          <div id="signin-error-box" class="hidden p-3 rounded-xl bg-urgent/15 border border-urgent/40 text-urgent text-xs font-semibold flex items-center gap-2"></div>
+
           <form onsubmit="event.preventDefault(); handleAuthLogin();" class="flex flex-col gap-3.5">
             <div>
               <label class="text-[11px] font-semibold text-text-secondary uppercase tracking-wider block mb-1">Student Email or ID</label>
@@ -861,6 +918,8 @@
 
         <!-- SIGN UP BOX -->
         <div id="signup-box" class="hidden bg-surface-elevated rounded-2xl p-5 shadow-xl flex flex-col gap-3.5 border border-border-line/40">
+          <div id="signup-error-box" class="hidden p-3 rounded-xl bg-urgent/15 border border-urgent/40 text-urgent text-xs font-semibold flex items-center gap-2"></div>
+
           <form onsubmit="event.preventDefault(); handleAuthRegister();" class="flex flex-col gap-3">
             <div>
               <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Full Name</label>
@@ -1035,6 +1094,11 @@
               <span class="material-symbols-outlined text-warning text-[18px] mr-2">find_in_page</span>
               <span class="text-[14px] font-medium truncate flex-1">Lost and found</span>
             </a>
+            <a href="javascript:void(0)" onclick="navigateToChannel('post-responses')" class="h-[40px] flex items-center px-2.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-elevated transition-colors">
+              <span class="material-symbols-outlined text-primary text-[18px] mr-2">mark_chat_read</span>
+              <span class="text-[14px] font-medium truncate flex-1">Post Responses</span>
+              <span class="bg-primary/20 text-primary text-[10px] font-bold px-1.5 rounded">LIVE</span>
+            </a>
             <a href="javascript:void(0)" onclick="navigateToChannel('contact-admin')" class="h-[40px] flex items-center px-2.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-elevated transition-colors">
               <span class="material-symbols-outlined text-primary text-[18px] mr-2">support_agent</span>
               <span class="text-[14px] font-medium truncate flex-1">Contact Admin (1-on-1)</span>
@@ -1098,12 +1162,39 @@
           <div class="flex items-center gap-3">
             <span class="w-2.5 h-2.5 rounded-full bg-warning"></span>
             <div>
-              <div class="text-[14px] font-semibold text-text-primary">Padma 2 • Uttara Route</div>
-              <div class="text-[11px] text-text-secondary">BRTC-2402 • Arriving 8 min (Airport)</div>
+              <div class="text-[14px] font-semibold text-text-primary">Padma 2 • Mirpur Route</div>
+              <div class="text-[11px] text-text-secondary">BRTC-2402 • Arriving 8 min (Mirpur 11.5)</div>
             </div>
           </div>
         </button>
       </div>
+      <div class="mt-3 pt-3 border-t border-border-line/40">
+        <button onclick="closeBusSelectorModal(); openBusScheduleModal();" class="w-full py-2.5 px-3 rounded-xl bg-surface-highest hover:bg-surface-bright text-text-primary font-bold text-xs flex items-center justify-center gap-1.5 transition-all">
+          <span class="material-symbols-outlined text-[16px] text-warning">calendar_month</span>
+          <span>View Fall 25 Timetable (সময়সূচী)</span>
+        </button>
+      </div>
+    </dialog>
+
+    <!-- 1.1 Official Fall 25 Bus Schedule Modal -->
+    <dialog id="bus-schedule-modal" class="m-auto rounded-3xl bg-surface-elevated text-text-primary p-5 backdrop:bg-surface/80 shadow-2xl max-w-[420px] w-full border border-border-line/40 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-[#991b1b]/20 flex items-center justify-center text-[#ef4444] border border-[#ef4444]/40">
+            <span class="material-symbols-outlined text-[20px]">directions_bus</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-text-primary tracking-tight">PADMA FALL 25 BUS SCHEDULE</h3>
+            <p class="text-[10.5px] text-text-secondary font-medium">পদ্মা ফল ২৫ বাস সময়সূচী (মিরপুর ১২ ➔ ভার্সিটি)</p>
+          </div>
+        </div>
+        <button onclick="closeBusScheduleModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:text-text-primary bg-surface-highest">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+      
+      <!-- Injected by renderBusScheduleModal() in tracker.js -->
+      <div id="bus-schedule-modal-content"></div>
     </dialog>
 
     <!-- 2. Blood Request Modal -->
@@ -1211,6 +1302,261 @@
         </div>
         <button type="submit" class="w-full h-11 bg-warning text-black font-bold text-xs rounded-xl shadow active:scale-95 transition-transform mt-1">
           Post Notice
+        </button>
+      </form>
+    </dialog>
+
+    <!-- 4. Donor Response Modal ("I Can Donate") -->
+    <dialog id="donor-response-modal" class="m-auto rounded-2xl bg-surface-elevated text-text-primary p-5 backdrop:bg-surface/75 shadow-2xl max-w-[390px] w-full border border-border-line/40">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-urgent text-[22px]">volunteer_activism</span>
+          <h3 class="font-bold text-sm text-text-primary">Volunteer as Blood Donor</h3>
+        </div>
+        <button onclick="closeDonorResponseModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary bg-surface-highest">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <div id="donor-modal-post-info" class="mb-3">
+        <!-- Injected via JS -->
+      </div>
+
+      <form onsubmit="event.preventDefault(); submitDonorResponse();" class="flex flex-col gap-2.5 max-h-[70vh] overflow-y-auto pr-1">
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Your Full Name *</label>
+          <input id="donor-name" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" required type="text"/>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Department</label>
+            <input id="donor-dept" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" placeholder="CSE" required type="text"/>
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Semester</label>
+            <input id="donor-sem" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" placeholder="4-1" required type="text"/>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Contact Phone Number *</label>
+          <input id="donor-phone" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" placeholder="017xxxxxxxx" required type="tel"/>
+        </div>
+
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Facebook Profile / Messenger Link</label>
+          <input id="donor-fblink" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" placeholder="https://facebook.com/username or m.me/..." type="url"/>
+        </div>
+
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">When Can You Donate? (Availability)</label>
+          <input id="donor-avail" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" placeholder="e.g. Immediately or Today after 2:00 PM" required type="text"/>
+        </div>
+
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Additional Note / Eligibility (Optional)</label>
+          <textarea id="donor-notes" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none h-16 leading-relaxed" placeholder="e.g. Weight 65kg, last donated 6 months ago, cross-match ready."></textarea>
+        </div>
+
+        <button type="submit" class="w-full h-11 bg-urgent text-white font-bold text-xs rounded-xl shadow active:scale-95 transition-transform mt-1 flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-[18px]">send</span>
+          <span>Send Donation Offer to Requester</span>
+        </button>
+      </form>
+    </dialog>
+
+    <!-- 5. Lost & Found Claim/Response Modal -->
+    <dialog id="lost-found-response-modal" class="m-auto rounded-2xl bg-surface-elevated text-text-primary p-5 backdrop:bg-surface/75 shadow-2xl max-w-[380px] w-full border border-border-line/40">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-warning text-[22px]">verified</span>
+          <h3 class="font-bold text-sm text-text-primary">Respond to Notice</h3>
+        </div>
+        <button onclick="closeLostFoundResponseModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary bg-surface-highest">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <div id="lf-modal-post-info" class="mb-3">
+        <!-- Injected via JS -->
+      </div>
+
+      <form onsubmit="event.preventDefault(); submitLostFoundResponse();" class="flex flex-col gap-2.5 max-h-[70vh] overflow-y-auto pr-1">
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Your Full Name *</label>
+          <input id="lf-resp-name" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" required type="text"/>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Department</label>
+            <input id="lf-resp-dept" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" placeholder="CSE" required type="text"/>
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Semester</label>
+            <input id="lf-resp-sem" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" placeholder="4-1" required type="text"/>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Contact Phone Number *</label>
+          <input id="lf-resp-phone" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" placeholder="017xxxxxxxx" required type="tel"/>
+        </div>
+
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Facebook Link (Optional)</label>
+          <input id="lf-resp-fblink" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" placeholder="https://facebook.com/..." type="url"/>
+        </div>
+
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Details / Proof / Handover Location *</label>
+          <textarea id="lf-resp-notes" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none h-20" placeholder="Provide proof of ownership or where the item can be picked up..." required></textarea>
+        </div>
+
+        <button type="submit" class="w-full h-11 bg-warning text-black font-bold text-xs rounded-xl shadow active:scale-95 transition-transform mt-1 flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-[18px]">send</span>
+          <span>Send Response to Notice Author</span>
+        </button>
+      </form>
+    </dialog>
+
+    <!-- 6. Edit Blood Request Modal -->
+    <dialog id="edit-blood-request-modal" class="m-auto rounded-2xl bg-surface-elevated text-text-primary p-5 backdrop:bg-surface/75 shadow-2xl max-w-[380px] w-full border border-border-line/40">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-urgent text-[22px]">edit</span>
+          <h3 class="font-bold text-sm text-text-primary">Edit Blood Request</h3>
+        </div>
+        <button onclick="closeEditBloodRequestModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary bg-surface-highest">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+      <form onsubmit="event.preventDefault(); saveEditedBloodRequest();" class="flex flex-col gap-2.5 max-h-[75vh] overflow-y-auto pr-1">
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Title *</label>
+          <input id="edit-blood-req-title" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" required type="text"/>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Blood Group</label>
+            <select id="edit-blood-req-group" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none">
+              <option>O+</option>
+              <option>O-</option>
+              <option>A+</option>
+              <option>A-</option>
+              <option>B+</option>
+              <option>B-</option>
+              <option>AB+</option>
+              <option>AB-</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Required Date</label>
+            <input id="edit-blood-req-date" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" type="text"/>
+          </div>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Hospital Name & Location *</label>
+          <input id="edit-blood-req-hospital" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" required type="text"/>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Patient Details</label>
+          <input id="edit-blood-req-patient" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" type="text"/>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Contact Number *</label>
+            <input id="edit-blood-req-contact" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" required type="text"/>
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Email Address</label>
+            <input id="edit-blood-req-email" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" type="email"/>
+          </div>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Message Body</label>
+          <textarea id="edit-blood-req-body" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none h-16"></textarea>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Extra Information</label>
+          <input id="edit-blood-req-extra" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" type="text"/>
+        </div>
+        <button type="submit" class="w-full h-11 bg-primary text-on-primary font-bold text-xs rounded-xl shadow active:scale-95 transition-transform mt-1">
+          Save Changes
+        </button>
+      </form>
+    </dialog>
+
+    <!-- 7. Edit Lost and Found Modal -->
+    <dialog id="edit-lost-found-modal" class="m-auto rounded-2xl bg-surface-elevated text-text-primary p-5 backdrop:bg-surface/75 shadow-2xl max-w-[360px] w-full border border-border-line/40">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-bold text-sm text-text-primary">Edit Notice</h3>
+        <button onclick="closeEditLostFoundModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary bg-surface-highest">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+      <form onsubmit="event.preventDefault(); saveEditedLostFound();" class="flex flex-col gap-2.5">
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Notice Type</label>
+          <select id="edit-lf-type" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none">
+            <option value="LOST">Lost Item</option>
+            <option value="FOUND">Found Item</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Title *</label>
+          <input id="edit-lf-title" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" required type="text"/>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Body Description *</label>
+          <textarea id="edit-lf-desc" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none h-20" required></textarea>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Location / Bus</label>
+          <input id="edit-lf-location" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" type="text"/>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Contact Number or Email</label>
+          <input id="edit-lf-contact" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" type="text"/>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Picture URL (Optional)</label>
+          <input id="edit-lf-img" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" type="url"/>
+        </div>
+        <button type="submit" class="w-full h-11 bg-primary text-on-primary font-bold text-xs rounded-xl shadow active:scale-95 transition-transform mt-1">
+          Save Changes
+        </button>
+      </form>
+    </dialog>
+
+    <!-- 8. Edit Response Modal -->
+    <dialog id="edit-response-modal" class="m-auto rounded-2xl bg-surface-elevated text-text-primary p-5 backdrop:bg-surface/75 shadow-2xl max-w-[360px] w-full border border-border-line/40">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-bold text-sm text-text-primary">Edit Response / Offer</h3>
+        <button onclick="closeEditResponseModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary bg-surface-highest">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+      <form onsubmit="event.preventDefault(); saveEditedResponse();" class="flex flex-col gap-2.5">
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Contact Phone Number *</label>
+          <input id="edit-resp-phone" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" required type="tel"/>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Facebook / Messenger Link</label>
+          <input id="edit-resp-fblink" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" type="url"/>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Availability</label>
+          <input id="edit-resp-avail" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" type="text"/>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Notes</label>
+          <textarea id="edit-resp-notes" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none h-20"></textarea>
+        </div>
+        <button type="submit" class="w-full h-11 bg-primary text-on-primary font-bold text-xs rounded-xl shadow active:scale-95 transition-transform mt-1">
+          Save Changes
         </button>
       </form>
     </dialog>
