@@ -7,9 +7,188 @@ import '../widgets/admin_3d_card.dart';
 class AdminSchedulesTab extends StatelessWidget {
   const AdminSchedulesTab({super.key});
 
+  void _showEditDepartureDialog(BuildContext context, AdminViewModel adminVM) {
+    final firstCtrl = TextEditingController(text: adminVM.firstBusDepartureTime);
+    final secondCtrl = TextEditingController(text: adminVM.secondBusDepartureTime);
+    final returnCtrl = TextEditingController(text: adminVM.returnTripTimes);
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: PadmaTheme.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.edit_calendar_rounded, color: PadmaTheme.primaryTeal, size: 22),
+              SizedBox(width: 8),
+              Text('Edit Bus Departure Hours', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: PadmaTheme.textPrimary)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: firstCtrl,
+                style: const TextStyle(fontSize: 13, color: PadmaTheme.textPrimary),
+                decoration: InputDecoration(
+                  labelText: '1st Bus Starting Time (Mirpur 12)',
+                  labelStyle: const TextStyle(color: PadmaTheme.textMuted, fontSize: 12),
+                  filled: true,
+                  fillColor: PadmaTheme.surfaceElevated,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: secondCtrl,
+                style: const TextStyle(fontSize: 13, color: PadmaTheme.textPrimary),
+                decoration: InputDecoration(
+                  labelText: '2nd Bus Starting Time (Mirpur 12)',
+                  labelStyle: const TextStyle(color: PadmaTheme.textMuted, fontSize: 12),
+                  filled: true,
+                  fillColor: PadmaTheme.surfaceElevated,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: returnCtrl,
+                style: const TextStyle(fontSize: 13, color: PadmaTheme.textPrimary),
+                decoration: InputDecoration(
+                  labelText: 'Campus Return Trips Schedule',
+                  labelStyle: const TextStyle(color: PadmaTheme.textMuted, fontSize: 12),
+                  filled: true,
+                  fillColor: PadmaTheme.surfaceElevated,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel', style: TextStyle(color: PadmaTheme.textMuted)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                adminVM.updateDepartureTimes(
+                  firstBusTime: firstCtrl.text.trim(),
+                  secondBusTime: secondCtrl.text.trim(),
+                  returnTimes: returnCtrl.text.trim(),
+                );
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('✅ Bus departure schedule updated successfully!')),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: PadmaTheme.primaryTeal,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showEditStoppageDialog(BuildContext context, AdminViewModel adminVM, int index, AdminBusStoppage stop1, AdminBusStoppage stop2) {
+    final eta1Ctrl = TextEditingController(text: stop1.eta);
+    final eta2Ctrl = TextEditingController(text: stop2.eta);
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: PadmaTheme.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              const Icon(Icons.pin_drop_rounded, color: PadmaTheme.primaryTeal, size: 22),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Edit Stoppage: ${stop1.name}',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: PadmaTheme.textPrimary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Stoppage #${index + 1}: ${stop1.name}',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: PadmaTheme.textSecondary),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: eta1Ctrl,
+                style: const TextStyle(fontSize: 13, color: PadmaTheme.textPrimary),
+                decoration: InputDecoration(
+                  labelText: '1st Bus ETA (e.g. 06:45 AM or ৬:৪৫)',
+                  labelStyle: const TextStyle(color: PadmaTheme.textMuted, fontSize: 12),
+                  filled: true,
+                  fillColor: PadmaTheme.surfaceElevated,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: eta2Ctrl,
+                style: const TextStyle(fontSize: 13, color: PadmaTheme.textPrimary),
+                decoration: InputDecoration(
+                  labelText: '2nd Bus ETA (e.g. 08:30 AM or ৮:৩০)',
+                  labelStyle: const TextStyle(color: PadmaTheme.textMuted, fontSize: 12),
+                  filled: true,
+                  fillColor: PadmaTheme.surfaceElevated,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel', style: TextStyle(color: PadmaTheme.textMuted)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (eta1Ctrl.text.trim().isNotEmpty) {
+                  adminVM.updateStoppageEta(isFirstBus: true, index: index, newEta: eta1Ctrl.text.trim());
+                }
+                if (eta2Ctrl.text.trim().isNotEmpty) {
+                  adminVM.updateStoppageEta(isFirstBus: false, index: index, newEta: eta2Ctrl.text.trim());
+                }
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('✅ Updated ETA for ${stop1.name}')),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: PadmaTheme.primaryTeal,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text('Save Stoppage', style: TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final adminVM = context.watch<AdminViewModel>();
+    final firstStoppages = AdminViewModel.currentFirstBusStoppages;
+    final secondStoppages = AdminViewModel.currentSecondBusStoppages;
 
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -49,9 +228,9 @@ class AdminSchedulesTab extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Confirm which bus operates as the 1st Bus (06:45 AM departure from Mirpur 12) vs 2nd Bus (08:30 AM departure). Students receive instant live alerts upon confirmation.',
-                style: TextStyle(fontSize: 12, color: PadmaTheme.textSecondary, height: 1.4),
+              Text(
+                'Confirm which bus operates as the 1st Bus (${adminVM.firstBusDepartureTime} departure from Mirpur 12) vs 2nd Bus (${adminVM.secondBusDepartureTime} departure). Students receive instant live alerts upon confirmation.',
+                style: const TextStyle(fontSize: 12, color: PadmaTheme.textSecondary, height: 1.4),
               ),
               const SizedBox(height: 14),
 
@@ -84,7 +263,7 @@ class AdminSchedulesTab extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              adminVM.isBus1First ? '1st Bus • 06:45 AM' : '2nd Bus • 08:30 AM',
+                              adminVM.isBus1First ? '1st Bus • ${adminVM.firstBusDepartureTime}' : '2nd Bus • ${adminVM.secondBusDepartureTime}',
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
@@ -123,7 +302,7 @@ class AdminSchedulesTab extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              !adminVM.isBus1First ? '1st Bus • 06:45 AM' : '2nd Bus • 08:30 AM',
+                              !adminVM.isBus1First ? '1st Bus • ${adminVM.firstBusDepartureTime}' : '2nd Bus • ${adminVM.secondBusDepartureTime}',
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
@@ -138,27 +317,44 @@ class AdminSchedulesTab extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    adminVM.setFirstBus(adminVM.firstBusId, broadcast: true);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Broadcasted to students: ${adminVM.firstBusName} is confirmed as 1st Bus!'),
-                        backgroundColor: PadmaTheme.primaryTeal,
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _showEditDepartureDialog(context, adminVM),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: PadmaTheme.borderLine),
+                        padding: const EdgeInsets.symmetric(vertical: 11),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: PadmaTheme.primaryTeal,
-                    foregroundColor: PadmaTheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 11),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      icon: const Icon(Icons.edit_note_rounded, size: 18, color: PadmaTheme.textPrimary),
+                      label: const Text('Edit Hours', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: PadmaTheme.textPrimary)),
+                    ),
                   ),
-                  icon: const Icon(Icons.campaign_rounded, size: 18),
-                  label: const Text('Confirm & Broadcast Announcement', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
-                ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        adminVM.setFirstBus(adminVM.firstBusId, broadcast: true);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Broadcasted to students: ${adminVM.firstBusName} is confirmed as 1st Bus!'),
+                            backgroundColor: PadmaTheme.primaryTeal,
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: PadmaTheme.primaryTeal,
+                        foregroundColor: PadmaTheme.onPrimary,
+                        padding: const EdgeInsets.symmetric(vertical: 11),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      icon: const Icon(Icons.campaign_rounded, size: 18),
+                      label: const Text('Confirm & Broadcast', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -166,7 +362,7 @@ class AdminSchedulesTab extends StatelessWidget {
 
         const SizedBox(height: 16),
 
-        // 2. Official Fall 25 Bus Schedule Table
+        // 2. Official Fall 25 Bus Schedule Table with Live Editing
         Admin3dCard(
           borderColor: PadmaTheme.primaryTeal.withValues(alpha: 0.3),
           padding: const EdgeInsets.all(16),
@@ -189,13 +385,19 @@ class AdminSchedulesTab extends StatelessWidget {
                       ),
                     ],
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: PadmaTheme.primaryTealContainer,
-                      borderRadius: BorderRadius.circular(6),
+                  ElevatedButton.icon(
+                    onPressed: () => _showEditDepartureDialog(context, adminVM),
+                    icon: const Icon(Icons.edit_calendar_rounded, size: 12),
+                    label: const Text('Edit Hours', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: PadmaTheme.primaryTealContainer,
+                      foregroundColor: PadmaTheme.primaryTeal,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                     ),
-                    child: const Text('OFFICIAL', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: PadmaTheme.primaryTeal)),
                   ),
                 ],
               ),
@@ -242,19 +444,20 @@ class AdminSchedulesTab extends StatelessWidget {
                         ],
                       ),
                     ),
+                    const SizedBox(width: 24), // Space for action column
                   ],
                 ),
               ),
               const SizedBox(height: 4),
 
-              // 14 Stoppage Rows
-              ...List.generate(AdminViewModel.fall25FirstBusStoppages.length, (idx) {
-                final stop1 = AdminViewModel.fall25FirstBusStoppages[idx];
-                final stop2 = AdminViewModel.fall25SecondBusStoppages[idx];
+              // 14 Stoppage Rows with Direct Edit Button
+              ...List.generate(firstStoppages.length, (idx) {
+                final stop1 = firstStoppages[idx];
+                final stop2 = (idx < secondStoppages.length) ? secondStoppages[idx] : stop1;
                 final isEven = idx % 2 == 0;
 
                 return Container(
-                  padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 10),
+                  padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                   decoration: BoxDecoration(
                     color: isEven ? PadmaTheme.surfaceElevated : Colors.transparent,
                     borderRadius: BorderRadius.circular(6),
@@ -293,6 +496,13 @@ class AdminSchedulesTab extends StatelessWidget {
                           ),
                         ),
                       ),
+                      IconButton(
+                        icon: const Icon(Icons.edit_rounded, size: 14, color: PadmaTheme.primaryTeal),
+                        tooltip: 'Edit ETA for ${stop1.name}',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                        onPressed: () => _showEditStoppageDialog(context, adminVM, idx, stop1, stop2),
+                      ),
                     ],
                   ),
                 );
@@ -301,32 +511,37 @@ class AdminSchedulesTab extends StatelessWidget {
               const SizedBox(height: 12),
 
               // Return Trips & Notice Banner
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF7A1010),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.directions_bus_filled_rounded, color: Colors.white, size: 16),
-                        SizedBox(width: 6),
-                        Text(
-                          'ফিরতি বাস: দুপুর ৩.৪৫ & সন্ধ্যা ৬.১৫',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'বিঃদ্রঃ- স্টপেজে উল্লেখিত নির্ধারিত সময়ের ১০ মিনিট পূর্বে স্টপেজে দাঁড়ানোর জন্য অনুরোধ করা হলো।',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 10.5, color: Colors.white70, height: 1.3),
-                    ),
-                  ],
+              GestureDetector(
+                onTap: () => _showEditDepartureDialog(context, adminVM),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF7A1010),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.directions_bus_filled_rounded, color: Colors.white, size: 16),
+                          const SizedBox(width: 6),
+                          Text(
+                            'ফিরতি বাস: ${adminVM.returnTripTimes}',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white),
+                          ),
+                          const SizedBox(width: 6),
+                          const Icon(Icons.edit_rounded, color: Colors.white70, size: 12),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'বিঃদ্রঃ- স্টপেজে উল্লেখিত নির্ধারিত সময়ের ১০ মিনিট পূর্বে স্টপেজে দাঁড়ানোর জন্য অনুরোধ করা হলো।',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 10.5, color: Colors.white70, height: 1.3),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
