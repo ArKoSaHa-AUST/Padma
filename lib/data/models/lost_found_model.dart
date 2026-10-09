@@ -29,4 +29,30 @@ class LostFoundModel {
     required this.authorTag,
     required this.createdAt,
   });
+
+  LostFoundModel copyWith({
+    String? id,
+    String? title,
+    String? description,
+    LostFoundType? type,
+    String? location,
+    String? contact,
+    String? imageUrl,
+    String? authorName,
+    String? authorTag,
+    DateTime? createdAt,
+  }) {
+    return LostFoundModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      type: type ?? this.type,
+      location: location ?? this.location,
+      contact: contact ?? this.contact,
+      imageUrl: imageUrl ?? this.imageUrl,
+      authorName: authorName ?? this.authorName,
+      authorTag: authorTag ?? this.authorTag,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }
