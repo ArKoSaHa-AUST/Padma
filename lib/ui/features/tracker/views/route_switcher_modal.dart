@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/theme.dart';
 import '../../admin/view_models/admin_view_model.dart';
 import '../view_models/tracker_view_model.dart';
+import 'fall25_schedule_modal.dart';
 
 class RouteSwitcherModal extends StatelessWidget {
   const RouteSwitcherModal({super.key});
@@ -126,6 +127,31 @@ class RouteSwitcherModal extends StatelessWidget {
               ),
             );
           }),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (_) => const Fall25ScheduleModal(),
+                );
+              },
+              icon: const Icon(Icons.calendar_month_rounded, size: 16, color: PadmaTheme.busAmber),
+              label: const Text(
+                'View Official Fall 25 Bus Schedule (সময়সূচী)',
+                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: PadmaTheme.textPrimary),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: PadmaTheme.borderLine),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
           const SizedBox(height: 8),
         ],
       ),

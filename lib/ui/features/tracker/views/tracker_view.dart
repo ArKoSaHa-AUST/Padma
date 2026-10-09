@@ -10,6 +10,7 @@ import '../../../core/theme.dart';
 import '../../admin/view_models/admin_view_model.dart';
 import '../../channels/views/bus_telemetry_chat_view.dart';
 import '../view_models/tracker_view_model.dart';
+import 'fall25_schedule_modal.dart';
 import 'route_switcher_modal.dart';
 
 class TrackerView extends StatefulWidget {
@@ -409,6 +410,44 @@ class _TrackerViewState extends State<TrackerView> {
                                   fontWeight: isTripEnded ? FontWeight.normal : FontWeight.w600,
                                 ),
                               ),
+                              const SizedBox(height: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: adminBus.id == adminVM.firstBusId
+                                      ? PadmaTheme.primaryTeal.withValues(alpha: 0.15)
+                                      : PadmaTheme.busAmber.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: adminBus.id == adminVM.firstBusId
+                                        ? PadmaTheme.primaryTeal.withValues(alpha: 0.5)
+                                        : PadmaTheme.busAmber.withValues(alpha: 0.5),
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      adminBus.id == adminVM.firstBusId ? Icons.looks_one_rounded : Icons.looks_two_rounded,
+                                      size: 13,
+                                      color: adminBus.id == adminVM.firstBusId ? PadmaTheme.primaryTeal : PadmaTheme.busAmber,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      adminBus.id == adminVM.firstBusId
+                                          ? '1ST BUS • 06:45 AM'
+                                          : '2ND BUS • 08:30 AM',
+                                      style: TextStyle(
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: adminBus.id == adminVM.firstBusId ? PadmaTheme.primaryTeal : PadmaTheme.busAmber,
+                                        letterSpacing: 0.2,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -437,36 +476,62 @@ class _TrackerViewState extends State<TrackerView> {
                         ),
                       ],
                     ),
-                    const Divider(height: 24),
+                    const Divider(height: 20),
 
-                    // Quick Action: Message Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          final channelId = (adminBus.id == 'bus_1' || adminBus.id == 'bus-1') ? 'bus-1-mirpur' : 'bus-2-uttara';
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => BusTelemetryChatView(
-                                onOpenDrawer: () => Navigator.pop(context),
-                                activeChannel: channelId,
-                              ),
+                    // Quick Actions: Message Button & Schedule Button
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              final channelId = (adminBus.id == 'bus_1' || adminBus.id == 'bus-1') ? 'bus-1-mirpur' : 'bus-2-uttara';
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => BusTelemetryChatView(
+                                    onOpenDrawer: () => Navigator.pop(context),
+                                    activeChannel: channelId,
+                                  ),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.chat_bubble_outline_rounded, size: 14),
+                            label: Text(
+                              '#${(adminBus.id == 'bus_1' || adminBus.id == 'bus-1') ? 'bus-1' : 'bus-2'} Chat',
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
                             ),
-                          );
-                        },
-                        icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
-                        label: Text(
-                          'Open #${(adminBus.id == 'bus_1' || adminBus.id == 'bus-1') ? 'bus-1-mirpur' : 'bus-2-uttara'} Messages',
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: PadmaTheme.primaryTeal,
+                              foregroundColor: PadmaTheme.onPrimary,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                            ),
+                          ),
                         ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: PadmaTheme.primaryTeal,
-                          foregroundColor: PadmaTheme.onPrimary,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (_) => const Fall25ScheduleModal(),
+                              );
+                            },
+                            icon: const Icon(Icons.calendar_month_rounded, size: 14, color: PadmaTheme.busAmber),
+                            label: const Text(
+                              'Fall 25 Schedule',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: PadmaTheme.textPrimary),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: PadmaTheme.borderLine),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
