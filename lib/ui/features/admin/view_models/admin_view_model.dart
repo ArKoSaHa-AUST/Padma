@@ -488,7 +488,7 @@ class AdminViewModel extends ChangeNotifier {
       etaMinutes: 0,
       latitude: 23.8272,
       longitude: 90.3644,
-      stoppages: _editableFirstBusStoppages,
+      stoppages: List.from(_editableFirstBusStoppages),
     ),
     AdminBusItem(
       id: 'bus_2',
@@ -506,7 +506,7 @@ class AdminViewModel extends ChangeNotifier {
       etaMinutes: 0,
       latitude: 23.8272,
       longitude: 90.3644,
-      stoppages: _editableSecondBusStoppages,
+      stoppages: List.from(_editableSecondBusStoppages),
     ),
   ];
 
@@ -518,19 +518,19 @@ class AdminViewModel extends ChangeNotifier {
     if (_firstBusId == 'bus_1') {
       _fleet[0].title = 'Padma 1 (1st Bus • $_firstBusDepartureTime)';
       _fleet[0].stoppages.clear();
-      _fleet[0].stoppages.addAll(_editableFirstBusStoppages);
+      _fleet[0].stoppages.addAll(List.from(_editableFirstBusStoppages));
 
       _fleet[1].title = 'Padma 2 (2nd Bus • $_secondBusDepartureTime)';
       _fleet[1].stoppages.clear();
-      _fleet[1].stoppages.addAll(_editableSecondBusStoppages);
+      _fleet[1].stoppages.addAll(List.from(_editableSecondBusStoppages));
     } else {
       _fleet[0].title = 'Padma 1 (2nd Bus • $_secondBusDepartureTime)';
       _fleet[0].stoppages.clear();
-      _fleet[0].stoppages.addAll(_editableSecondBusStoppages);
+      _fleet[0].stoppages.addAll(List.from(_editableSecondBusStoppages));
 
       _fleet[1].title = 'Padma 2 (1st Bus • $_firstBusDepartureTime)';
       _fleet[1].stoppages.clear();
-      _fleet[1].stoppages.addAll(_editableFirstBusStoppages);
+      _fleet[1].stoppages.addAll(List.from(_editableFirstBusStoppages));
     }
 
     if (broadcast) {
