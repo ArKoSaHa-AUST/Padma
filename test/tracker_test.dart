@@ -14,7 +14,7 @@ void main() {
       final trackerVM = TrackerViewModel();
       trackerVM.selectRoute('bus-2');
       expect(trackerVM.selectedRoute.id, 'bus-2');
-      expect(trackerVM.selectedRoute.title, contains('Uttara'));
+      expect(trackerVM.selectedRoute.title, contains('Padma 2'));
       trackerVM.dispose();
     });
   });

@@ -199,5 +199,47 @@ void main() {
 
       expect(channelsVM.notifications.any((n) => n.type == NotificationType.destinationArrival), true);
     });
+
+    test('Lost and Found comments: Add, edit, delete and mention notifications', () {
+      final channelsVM = ChannelsViewModel();
+      final postId = 'lf_1';
+
+      // 1. Check initial seed comment
+      final initialComments = channelsVM.getCommentsForPost(postId);
+      expect(initialComments.isNotEmpty, true);
+
+      // 2. Add a new comment
+      channelsVM.addPostComment(
+        postId: postId,
+        content: 'I saw someone handing it to the 4th floor security desk @Siam_CSE_3-1_Mirpur10',
+        userId: 'test-user-123',
+        userName: 'Sadia Afrin',
+        userTag: 'Sadia_CSE_2-2_Campus',
+      );
+
+      final updatedComments = channelsVM.getCommentsForPost(postId);
+      expect(updatedComments.length, initialComments.length + 1);
+      final newComment = updatedComments.last;
+      expect(newComment.content, contains('4th floor security desk'));
+      expect(newComment.userName, 'Sadia Afrin');
+
+      // Check that mention notification was generated
+      expect(channelsVM.notifications.any((n) => n.type == NotificationType.mention), true);
+
+      // 3. Edit comment
+      channelsVM.updatePostComment(
+        newComment.id,
+        'Updated: Actually handed to Room 4A03 lab attendant Mr. Harun.',
+      );
+
+      final editedComment = channelsVM.getCommentsForPost(postId).firstWhere((c) => c.id == newComment.id);
+      expect(editedComment.content, 'Updated: Actually handed to Room 4A03 lab attendant Mr. Harun.');
+      expect(editedComment.updatedAt != null, true);
+
+      // 4. Delete comment
+      channelsVM.deletePostComment(newComment.id);
+      final finalComments = channelsVM.getCommentsForPost(postId);
+      expect(finalComments.any((c) => c.id == newComment.id), false);
+    });
   });
 }
