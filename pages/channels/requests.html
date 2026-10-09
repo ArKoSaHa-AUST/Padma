@@ -106,6 +106,153 @@
     </article>
   </main>
 
+  <!-- Donor Volunteer Response Modal -->
+  <dialog id="donor-response-modal" class="m-auto rounded-2xl bg-surface-elevated text-text-primary p-5 backdrop:bg-surface/75 shadow-2xl max-w-[360px] w-full border border-border-line/40">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-urgent text-[22px]">volunteer_activism</span>
+        <h3 class="font-bold text-sm text-text-primary">I Can Donate Blood</h3>
+      </div>
+      <button onclick="closeDonorResponseModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary bg-surface-highest">
+        <span class="material-symbols-outlined text-[18px]">close</span>
+      </button>
+    </div>
+    <form onsubmit="event.preventDefault(); submitDonorResponse();" class="flex flex-col gap-2.5">
+      <input type="hidden" id="donor-resp-post-id"/>
+      <div>
+        <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Donor Name *</label>
+        <input id="donor-resp-name" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" placeholder="e.g. Arko Saha" required type="text"/>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Department *</label>
+          <select id="donor-resp-dept" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none">
+            <option>CSE</option><option>EEE</option><option>ME</option><option>CE</option><option>IPE</option><option>TE</option><option>BBA</option><option>Arch</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Semester *</label>
+          <select id="donor-resp-sem" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none">
+            <option>1-1</option><option>1-2</option><option>2-1</option><option>2-2</option><option>3-1</option><option>3-2</option><option>4-1</option><option>4-2</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Contact Phone Number *</label>
+        <input id="donor-resp-phone" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" placeholder="+880 1711..." required type="tel"/>
+      </div>
+      <div>
+        <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Facebook / Messenger Link</label>
+        <input id="donor-resp-fblink" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" placeholder="https://m.me/username or fb.com/..." type="url"/>
+      </div>
+      <div>
+        <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Availability / Preferred Time</label>
+        <input id="donor-resp-avail" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" placeholder="Available today afternoon / after 3 PM" type="text"/>
+      </div>
+      <div>
+        <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Short Note to Requester</label>
+        <textarea id="donor-resp-notes" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none h-16" placeholder="Any details..."></textarea>
+      </div>
+      <button type="submit" class="w-full h-11 bg-urgent text-white font-bold text-xs rounded-xl shadow active:scale-95 transition-transform mt-1 flex items-center justify-center gap-1.5">
+        <span class="material-symbols-outlined text-[18px]">send</span>
+        <span>Send Response to Requester</span>
+      </button>
+    </form>
+  </dialog>
+
+  <!-- Edit Blood Request Modal -->
+  <dialog id="edit-blood-request-modal" class="m-auto rounded-2xl bg-surface-elevated text-text-primary p-5 backdrop:bg-surface/75 shadow-2xl max-w-[360px] w-full border border-border-line/40">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-bold text-sm text-text-primary">Edit Blood Request</h3>
+      <button onclick="closeEditBloodRequestModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary bg-surface-highest">
+        <span class="material-symbols-outlined text-[18px]">close</span>
+      </button>
+    </div>
+    <form onsubmit="event.preventDefault(); saveEditedBloodRequest();" class="flex flex-col gap-2.5">
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Blood Group *</label>
+          <select id="edit-blood-req-group" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none">
+            <option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Urgency</label>
+          <select id="edit-blood-req-urgency" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none">
+            <option value="IMMEDIATE">Immediate</option><option value="TODAY">Today</option><option value="WITHIN 24H">Within 24h</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Hospital Name & Location *</label>
+        <input id="edit-blood-req-hospital" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" required type="text"/>
+      </div>
+      <div>
+        <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Patient Details</label>
+        <input id="edit-blood-req-patient" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" type="text"/>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Contact Number *</label>
+          <input id="edit-blood-req-contact" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" required type="text"/>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Email Address</label>
+          <input id="edit-blood-req-email" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" type="email"/>
+        </div>
+      </div>
+      <div>
+        <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Message Body</label>
+        <textarea id="edit-blood-req-body" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none h-16"></textarea>
+      </div>
+      <div>
+        <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Extra Information</label>
+        <input id="edit-blood-req-extra" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" type="text"/>
+      </div>
+      <button type="submit" class="w-full h-11 bg-primary text-on-primary font-bold text-xs rounded-xl shadow active:scale-95 transition-transform mt-1">
+        Save Changes
+      </button>
+    </form>
+  </dialog>
+
+  <!-- Edit Response Modal -->
+  <dialog id="edit-response-modal" class="m-auto rounded-2xl bg-surface-elevated text-text-primary p-5 backdrop:bg-surface/75 shadow-2xl max-w-[360px] w-full border border-border-line/40">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-bold text-sm text-text-primary">Edit Response / Offer</h3>
+      <button onclick="closeEditResponseModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary bg-surface-highest">
+        <span class="material-symbols-outlined text-[18px]">close</span>
+      </button>
+    </div>
+    <form onsubmit="event.preventDefault(); saveEditedResponse();" class="flex flex-col gap-2.5">
+      <div>
+        <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Contact Phone Number *</label>
+        <input id="edit-resp-phone" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" required type="tel"/>
+      </div>
+      <div>
+        <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Facebook / Messenger Link</label>
+        <input id="edit-resp-fblink" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" type="url"/>
+      </div>
+      <div>
+        <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Availability</label>
+        <input id="edit-resp-avail" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none" type="text"/>
+      </div>
+      <div>
+        <label class="text-[11px] font-semibold text-text-secondary uppercase block mb-1">Notes</label>
+        <textarea id="edit-resp-notes" class="w-full bg-surface-highest rounded-xl p-2.5 text-xs text-text-primary outline-none h-20"></textarea>
+      </div>
+      <button type="submit" class="w-full h-11 bg-primary text-on-primary font-bold text-xs rounded-xl shadow active:scale-95 transition-transform mt-1">
+        Save Changes
+      </button>
+    </form>
+  </dialog>
+
+  <!-- Global App Toast Notification -->
+  <div id="app-toast" class="fixed bottom-20 left-4 right-4 max-w-[390px] mx-auto z-50 transform translate-y-12 opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-2.5 p-3.5 rounded-2xl bg-surface-highest text-text-primary shadow-2xl border border-border-line/40">
+    <span id="app-toast-icon" class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+    <span id="app-toast-msg" class="text-[13px] font-medium flex-1">Notification message</span>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../../assets/js/supabase-client.js"></script>
   <script src="../../assets/js/auth.js"></script>
   <script src="../../assets/js/requests.js"></script>
