@@ -65,7 +65,9 @@
         </div>
       </header>
 
-      <form class="flex flex-col gap-3.5 bg-surface-elevated rounded-2xl p-5 shadow-xl border border-border-line/40" action="../tracker/home.html" onsubmit="event.preventDefault(); handleAuthRegister();">
+      <form class="flex flex-col gap-3.5 bg-surface-elevated rounded-2xl p-5 shadow-xl border border-border-line/40" onsubmit="event.preventDefault(); handleAuthRegister();">
+        <div id="signup-error-box" class="hidden p-3 rounded-xl bg-urgent/15 border border-urgent/40 text-urgent text-xs font-semibold flex items-center gap-2"></div>
+
         <div class="flex flex-col gap-1">
           <label class="text-[11px] font-semibold tracking-wider uppercase text-text-secondary flex items-center gap-1.5">
             <span class="material-symbols-outlined text-[15px] text-primary">person</span>
@@ -182,7 +184,7 @@
           </div>
         </div>
 
-        <button class="w-full h-12 mt-1 rounded-xl bg-primary-container hover:bg-primary-variant text-on-primary-container font-bold flex items-center justify-center gap-2 shadow-lg transition-all" type="submit">
+        <button class="w-full h-12 mt-1 rounded-xl bg-primary-container hover:bg-primary-variant text-on-primary-container font-bold flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer" type="submit">
           <span class="material-symbols-outlined text-[19px]">person_add</span>
           <span>Create Account</span>
         </button>
@@ -190,6 +192,34 @@
     </div>
   </main>
 
+  <!-- Global App Toast Notification -->
+  <div id="app-toast" class="fixed bottom-10 left-4 right-4 max-w-[390px] mx-auto z-50 transform translate-y-12 opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-2.5 p-3.5 rounded-2xl bg-surface-highest text-text-primary shadow-2xl border border-border-line/40">
+    <span id="app-toast-icon" class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+    <span id="app-toast-msg" class="text-[13px] font-medium flex-1">Notification message</span>
+  </div>
+
+  <script>
+    window.showAppToast = function(msg, isError = false) {
+      const toast = document.getElementById('app-toast');
+      const msgEl = document.getElementById('app-toast-msg');
+      const icon = document.getElementById('app-toast-icon');
+      if (!toast || !msgEl || !icon) return;
+      msgEl.textContent = msg;
+      if (isError) {
+        icon.textContent = 'error';
+        icon.className = 'material-symbols-outlined text-urgent text-[20px]';
+      } else {
+        icon.textContent = 'check_circle';
+        icon.className = 'material-symbols-outlined text-primary text-[20px]';
+      }
+      toast.classList.remove('translate-y-12', 'opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        toast.classList.add('translate-y-12', 'opacity-0', 'pointer-events-none');
+      }, 3500);
+    };
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../../assets/js/supabase-client.js"></script>
   <script src="../../assets/js/auth.js"></script>
 </body>

@@ -57,13 +57,17 @@ initializeUsersDatabase();
 
 // Sync users from Supabase profiles table on start
 async function syncProfilesFromSupabase() {
-  if (typeof SupabaseDb !== 'undefined') {
+  if (typeof SupabaseDb !== 'undefined' && SupabaseDb.fetchProfiles) {
     try {
       const profiles = await SupabaseDb.fetchProfiles();
       if (profiles && profiles.length > 0) {
         const localUsers = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '[]');
         profiles.forEach(p => {
-          const idx = localUsers.findIndex(u => u.email.toLowerCase() === p.email.toLowerCase() || u.studentId === p.student_id);
+          const idx = localUsers.findIndex(u => 
+            (u.email && p.email && u.email.toLowerCase() === p.email.toLowerCase()) || 
+            (u.studentId && p.student_id && u.studentId === p.student_id) ||
+            u.id === p.id
+          );
           const mapped = {
             id: p.id,
             studentId: p.student_id || p.id,
@@ -148,10 +152,81 @@ function clearUserSession() {
 // Check session periodically for 2-hour auto logout
 setInterval(() => {
   const session = getCurrentSession();
-  if (!session && activeScreen !== 'signin') {
-    if (window.switchScreen) window.switchScreen('signin');
+  if (!session) {
+    if (typeof activeScreen !== 'undefined' && activeScreen !== 'signin') {
+      if (window.switchScreen) window.switchScreen('signin');
+    }
   }
 }, 30000);
+
+// Protected Pages Security Guard
+function checkPageAuthGuard() {
+  if (typeof window === 'undefined') return;
+  const user = getCurrentUser();
+  const path = window.location.pathname;
+
+  const isProtectedSubPage = (
+    path.includes('/tracker/') ||
+    path.includes('/channels/') ||
+    path.includes('/notifications/') ||
+    path.includes('/profile/')
+  );
+
+  if (isProtectedSubPage && !user) {
+    const prefix = path.includes('/pages/') ? '../auth/signin.html' : 'pages/auth/signin.html';
+    window.location.replace(prefix);
+  }
+}
+
+if (typeof window !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', checkPageAuthGuard);
+  } else {
+    checkPageAuthGuard();
+  }
+}
+
+// Inline Error Helpers for Sign In / Sign Up Boxes
+function showAuthInlineError(containerId, message) {
+  let box = document.getElementById(containerId);
+  if (!box) {
+    const activeForm = document.querySelector('form');
+    if (activeForm) {
+      box = document.createElement('div');
+      box.id = containerId;
+      box.className = 'p-3 rounded-xl bg-urgent/15 border border-urgent/40 text-urgent text-xs font-semibold flex items-center gap-2 mb-2 animate-shake';
+      activeForm.prepend(box);
+    }
+  }
+  if (box) {
+    box.innerHTML = `
+      <span class="material-symbols-outlined text-urgent text-[18px] shrink-0">error</span>
+      <span class="flex-1 text-xs font-semibold">${escapeAuthHtml(message)}</span>
+    `;
+    box.classList.remove('hidden');
+  }
+  if (window.showAppToast) {
+    window.showAppToast(message, true);
+  }
+}
+
+function clearAuthInlineError(containerId) {
+  const box = document.getElementById(containerId);
+  if (box) {
+    box.classList.add('hidden');
+    box.innerHTML = '';
+  }
+}
+
+function escapeAuthHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
 // Toggle Password Visibility
 function togglePasswordVisibility(inputId, triggerBtn) {
@@ -179,6 +254,9 @@ function toggleAuthForm(mode) {
   const signupBox = document.getElementById('signup-box');
   const tabIn = document.getElementById('auth-tab-signin');
   const tabUp = document.getElementById('auth-tab-signup');
+
+  clearAuthInlineError('signin-error-box');
+  clearAuthInlineError('signup-error-box');
 
   if (!signinBox || !signupBox) return;
 
@@ -220,8 +298,10 @@ function generateUUID() {
   });
 }
 
-// Handle Sign In (Dynamic with Supabase)
+// Handle Sign In (Strict Validation & Supabase Verification)
 async function handleAuthLogin() {
+  clearAuthInlineError('signin-error-box');
+
   const emailOrIdInput = document.getElementById('signin-email');
   const passInput = document.getElementById('signin-pass');
 
@@ -231,50 +311,56 @@ async function handleAuthLogin() {
   const password = passInput.value;
 
   if (!emailOrId || !password) {
-    if (window.showAppToast) window.showAppToast('Please enter both Email/ID and Password', true);
+    showAuthInlineError('signin-error-box', 'Please enter both Email/ID and Password.');
     return;
   }
 
-  // 1. Try checking Supabase live profiles
-  let user = null;
-  if (typeof SupabaseDb !== 'undefined') {
-    try {
-      const dbProfile = await SupabaseDb.fetchProfileByEmailOrId(emailOrId);
-      if (dbProfile) {
-        user = {
-          id: dbProfile.id,
-          studentId: dbProfile.student_id || dbProfile.id,
-          name: dbProfile.name,
-          email: dbProfile.email,
-          department: dbProfile.department || 'CSE',
-          semester: dbProfile.session || '4-1',
-          bloodGroup: dbProfile.blood_group || 'O+',
-          pickupDestination: dbProfile.default_stop_name || 'Mirpur 10',
-          role: dbProfile.role || 'student'
-        };
-      }
-    } catch (e) {
-      console.warn('Live profile fetch fallback:', e);
+  // Institutional format validation
+  if (emailOrId.includes('@')) {
+    if (!emailOrId.toLowerCase().endsWith('@aust.edu')) {
+      showAuthInlineError('signin-error-box', 'Email must be an official AUST institutional email (@aust.edu).');
+      return;
+    }
+  } else {
+    // If not email, ensure valid Student/Admin ID
+    if (emailOrId.length < 3) {
+      showAuthInlineError('signin-error-box', 'Please enter a valid Student ID or official @aust.edu email.');
+      return;
     }
   }
 
-  // 2. Local fallback check if Supabase offline or seeded
-  if (!user) {
-    const users = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '[]');
-    user = users.find(u => 
-      (u.email.toLowerCase() === emailOrId.toLowerCase() || u.studentId === emailOrId || u.id === emailOrId) &&
-      u.password === password
-    );
-  }
-
-  if (!user) {
-    if (window.showAppToast) {
-      window.showAppToast('Invalid credentials! Check ID or Password.', true);
-    }
+  if (password.length < 6) {
+    showAuthInlineError('signin-error-box', 'Password must be at least 6 characters long.');
     return;
   }
 
+  // Sync latest accounts from Supabase first
+  await syncProfilesFromSupabase();
+
+  const users = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '[]');
+  
+  // Find registered user by email or student ID
+  const user = users.find(u => 
+    (u.email && u.email.toLowerCase() === emailOrId.toLowerCase()) || 
+    (u.studentId && u.studentId.toLowerCase() === emailOrId.toLowerCase()) ||
+    (u.id && u.id === emailOrId)
+  );
+
+  if (!user) {
+    showAuthInlineError('signin-error-box', 'No registered account found with this Email/ID. Please Sign Up first.');
+    return;
+  }
+
+  // Verify password
+  if (user.password !== password) {
+    showAuthInlineError('signin-error-box', 'Incorrect password. Please verify your credentials and try again.');
+    return;
+  }
+
+  // Valid credentials: save session and redirect
   saveUserSession(user);
+  clearAuthInlineError('signin-error-box');
+
   if (window.showAppToast) {
     window.showAppToast(`Welcome back, ${user.name}!`);
   }
@@ -283,12 +369,18 @@ async function handleAuthLogin() {
   if (window.updateChannelPermissions) window.updateChannelPermissions();
 
   setTimeout(() => {
-    if (window.switchScreen) window.switchScreen('home');
-  }, 350);
+    if (window.switchScreen) {
+      window.switchScreen('home');
+    } else {
+      window.location.href = '../tracker/home.html';
+    }
+  }, 300);
 }
 
 // Handle Sign Up (Dynamic with Supabase Database Insert)
 async function handleAuthRegister() {
+  clearAuthInlineError('signup-error-box');
+
   const nameInput = document.getElementById('signup-name');
   const idInput = document.getElementById('signup-id');
   const deptInput = document.getElementById('signup-dept');
@@ -310,37 +402,46 @@ async function handleAuthRegister() {
   const passConfirm = passConfirmInput ? passConfirmInput.value : password;
 
   if (!name || !studentId || !email || !pickupDestination || !password) {
-    if (window.showAppToast) window.showAppToast('All required fields must be filled.', true);
+    showAuthInlineError('signup-error-box', 'All required fields must be filled.');
+    return;
+  }
+
+  if (name.length < 2) {
+    showAuthInlineError('signup-error-box', 'Please enter your real full name.');
+    return;
+  }
+
+  if (studentId.length < 4) {
+    showAuthInlineError('signup-error-box', 'Student ID must be at least 4 characters.');
     return;
   }
 
   // Institutional Email Validation: MUST END WITH @aust.edu
   if (!email.toLowerCase().endsWith('@aust.edu')) {
-    if (window.showAppToast) {
-      window.showAppToast('Institutional email must end with @aust.edu', true);
-    }
+    showAuthInlineError('signup-error-box', 'Institutional email must end with @aust.edu (e.g. name@aust.edu).');
     return;
   }
 
   if (password.length < 6) {
-    if (window.showAppToast) {
-      window.showAppToast('Password must be at least 6 characters long', true);
-    }
+    showAuthInlineError('signup-error-box', 'Password must be at least 6 characters long.');
     return;
   }
 
   if (password !== passConfirm) {
-    if (window.showAppToast) {
-      window.showAppToast('Passwords do not match!', true);
-    }
+    showAuthInlineError('signup-error-box', 'Passwords do not match! Please re-type.');
     return;
   }
 
+  // Check if account already exists
+  await syncProfilesFromSupabase();
   const users = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '[]');
-  if (users.some(u => u.email.toLowerCase() === email.toLowerCase() || u.studentId === studentId)) {
-    if (window.showAppToast) {
-      window.showAppToast('User with this email or ID already registered. Please Sign In.', true);
-    }
+  const existingUser = users.find(u => 
+    (u.email && u.email.toLowerCase() === email.toLowerCase()) || 
+    (u.studentId && u.studentId.toLowerCase() === studentId.toLowerCase())
+  );
+
+  if (existingUser) {
+    showAuthInlineError('signup-error-box', 'This institutional email or Student ID is already registered. Please Sign In.');
     return;
   }
 
@@ -358,8 +459,8 @@ async function handleAuthRegister() {
     role: 'student'
   };
 
-  // Push to Supabase profiles table directly
-  if (typeof SupabaseDb !== 'undefined') {
+  // Push directly to Supabase profiles table
+  if (typeof SupabaseDb !== 'undefined' && SupabaseDb.saveProfile) {
     try {
       await SupabaseDb.saveProfile({
         id: userId,
@@ -377,7 +478,7 @@ async function handleAuthRegister() {
         default_stop_name: pickupDestination
       });
     } catch (e) {
-      console.warn('Supabase profile insertion error:', e);
+      console.warn('Supabase profile insertion warning:', e);
     }
   }
 
@@ -385,16 +486,21 @@ async function handleAuthRegister() {
   localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
 
   saveUserSession(newUser);
+  clearAuthInlineError('signup-error-box');
 
   if (window.showAppToast) {
-    window.showAppToast('Account created successfully! Welcome to Padma.');
+    window.showAppToast(`Account registered successfully! Welcome to Padma, ${newUser.name}!`);
   }
 
   if (window.updateProfileUI) window.updateProfileUI();
   if (window.updateChannelPermissions) window.updateChannelPermissions();
 
   setTimeout(() => {
-    if (window.switchScreen) window.switchScreen('home');
+    if (window.switchScreen) {
+      window.switchScreen('home');
+    } else {
+      window.location.href = '../tracker/home.html';
+    }
   }, 350);
 }
 
@@ -402,6 +508,8 @@ async function handleAuthRegister() {
 function fillSeedTestCredentials(role = 'student') {
   const emailInput = document.getElementById('signin-email');
   const passInput = document.getElementById('signin-pass');
+  clearAuthInlineError('signin-error-box');
+
   if (emailInput && passInput) {
     if (role === 'student') {
       emailInput.value = 'padmaStudent@aust.edu';
@@ -423,6 +531,8 @@ function handleSignOut() {
   }
   if (window.switchScreen) {
     window.switchScreen('signin');
+  } else {
+    window.location.href = '../auth/signin.html';
   }
 }
 
@@ -439,7 +549,7 @@ async function updateUserProfile(data) {
     saveUserSession(users[idx]);
 
     // Update in Supabase profiles
-    if (typeof SupabaseDb !== 'undefined') {
+    if (typeof SupabaseDb !== 'undefined' && SupabaseDb.updateProfile) {
       try {
         await SupabaseDb.updateProfile(currentUser.id, {
           name: data.name,
