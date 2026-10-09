@@ -33,6 +33,7 @@ class UserProfile {
   });
 
   bool get isAdmin => role == UserRole.admin;
+  String? get phone => contactNumber;
 
   String get firstName {
     final parts = name.trim().split(RegExp(r'\s+'));
