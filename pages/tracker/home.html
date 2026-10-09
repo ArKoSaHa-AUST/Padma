@@ -108,19 +108,31 @@
 
         <div class="absolute top-4 left-4 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface/90 backdrop-blur-md border border-border-line/40">
           <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
-          <span class="text-xs font-bold text-text-primary">BRTC-2401</span>
-          <span class="text-[11px] text-text-muted font-mono">34 km/h</span>
+          <span id="hud-bus-code" class="text-xs font-bold text-text-primary">BRTC-2401</span>
+          <span id="hud-bus-speed" class="text-[11px] text-text-muted font-mono">34 km/h</span>
+        </div>
+
+        <div class="absolute top-4 right-4 z-10 flex items-center gap-1.5">
+          <button id="view-schedule-btn" onclick="openBusScheduleModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-sidebar/90 backdrop-blur-md text-text-primary active:scale-95 transition-all shadow-md border border-border-line/40">
+            <span class="material-symbols-outlined text-[15px] text-warning">calendar_month</span>
+            <span class="text-xs font-bold">Schedule</span>
+          </button>
+          <button id="switch-bus-btn" onclick="openBusSelectorModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-sidebar/90 backdrop-blur-md text-text-primary active:scale-95 transition-all shadow-md border border-border-line/40">
+            <span class="w-2 h-2 rounded-full bg-primary"></span>
+            <span class="text-xs font-bold">Switch</span>
+            <span class="material-symbols-outlined text-[16px] text-text-secondary">expand_more</span>
+          </button>
         </div>
       </div>
 
       <!-- Floating ETA Card -->
       <div class="relative z-20 px-4 -mt-7">
         <a href="../channels/bus1.html" class="block w-full bg-surface-elevated rounded-2xl p-4 shadow-xl border border-border-line/40">
-          <div class="flex items-start justify-between gap-3 mb-3">
+          <div class="flex items-start justify-between gap-3 mb-2">
             <div>
               <span class="text-[10px] uppercase tracking-wider text-text-muted font-bold">Estimated Arrival</span>
               <div class="flex items-baseline gap-1 mt-0.5">
-                <span class="font-display-eta text-3xl text-text-primary font-black">2</span>
+                <span id="eta-min-display" class="font-display-eta text-3xl text-text-primary font-black">2</span>
                 <span class="text-base text-primary font-bold">min</span>
               </div>
             </div>
@@ -129,10 +141,16 @@
                 <span class="w-1.5 h-1.5 rounded-full bg-success"></span>
                 On Time
               </div>
-              <span class="font-bold text-sm text-text-primary truncate">Mirpur 10</span>
-              <span class="text-[11px] text-text-secondary truncate">Arriving at Mirpur 10 Roundabout</span>
+              <span id="eta-checkpoint-title" class="font-bold text-sm text-text-primary truncate">Mirpur 10</span>
+              <span id="eta-sub-text" class="text-[11px] text-text-secondary truncate">Arriving at Mirpur 10 Roundabout</span>
             </div>
           </div>
+
+          <!-- Dynamic 1st/2nd Bus Order Badge -->
+          <div id="active-bus-order-badge" class="mb-2">
+            <span class="px-2 py-0.5 rounded-md bg-primary/20 text-primary text-[10px] font-extrabold border border-primary/40">1ST BUS • 06:45 AM DEPARTURE</span>
+          </div>
+
           <div class="mt-3 pt-2.5 flex items-center justify-between text-text-muted border-t border-border-line/30">
             <span class="text-[11px] font-medium">Tap to open Padma 1 Live Telemetry Channel</span>
             <span class="material-symbols-outlined text-[16px] text-primary">arrow_forward</span>
@@ -142,6 +160,20 @@
 
       <!-- Quick Nav Action Grid -->
       <div class="px-4 pt-5 pb-6 space-y-4">
+        <!-- Fall 25 Schedule Quick Banner -->
+        <button onclick="openBusScheduleModal()" class="w-full p-3.5 rounded-2xl bg-gradient-to-r from-surface-sidebar to-surface-elevated border border-border-line/50 hover:border-warning/50 text-left transition-all flex items-center justify-between shadow-md active:scale-[0.99]">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-warning/15 flex items-center justify-center text-warning border border-warning/30">
+              <span class="material-symbols-outlined text-[22px]">calendar_month</span>
+            </div>
+            <div>
+              <div class="font-extrabold text-sm text-text-primary">PADMA FALL 25 BUS SCHEDULE</div>
+              <div class="text-[11px] text-text-secondary">পদ্মা ফল ২৫ বাস সময়সূচী • ১৪টি স্টপেজ ও ফিরতি বাস</div>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-text-secondary text-[20px]">chevron_right</span>
+        </button>
+
         <div class="grid grid-cols-2 gap-3">
           <a href="../channels/bus1.html" class="p-3.5 rounded-2xl bg-surface-sidebar hover:bg-surface-elevated border border-border-line/40 flex flex-col justify-between h-24">
             <div class="flex items-center justify-between">
@@ -161,7 +193,7 @@
             </div>
             <div>
               <span class="font-bold text-sm text-text-primary block">Padma 2</span>
-              <span class="text-[11px] text-text-secondary">Uttara Route Telemetry</span>
+              <span class="text-[11px] text-text-secondary">Mirpur Route Telemetry</span>
             </div>
           </a>
         </div>
@@ -182,6 +214,64 @@
         </div>
       </div>
     </main>
+
+    <!-- Dialogs -->
+    <!-- 1. Switch Bus Modal -->
+    <dialog id="bus-select-modal" class="m-auto rounded-2xl bg-surface-elevated text-text-primary p-5 backdrop:bg-surface/75 shadow-2xl max-w-[340px] w-full border border-border-line/40">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold text-sm text-text-primary">Select Active Bus Route</h3>
+        <button onclick="closeBusSelectorModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:text-text-primary bg-surface-highest">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+      <div class="flex flex-col gap-2">
+        <button onclick="selectBusRoute('padma-1')" class="flex items-center justify-between p-3 rounded-xl bg-primary-container/20 border border-primary/40 text-text-primary text-left active:scale-98 transition-all">
+          <div class="flex items-center gap-3">
+            <span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+            <div>
+              <div class="text-[14px] font-semibold text-text-primary">Padma 1 • Mirpur Route</div>
+              <div class="text-[11px] text-text-secondary">BRTC-2401 • Arriving 2 min (Mirpur 10)</div>
+            </div>
+          </div>
+        </button>
+        <button onclick="selectBusRoute('padma-2')" class="flex items-center justify-between p-3 rounded-xl bg-surface-container hover:bg-surface-highest text-left active:scale-98 transition-all">
+          <div class="flex items-center gap-3">
+            <span class="w-2.5 h-2.5 rounded-full bg-warning"></span>
+            <div>
+              <div class="text-[14px] font-semibold text-text-primary">Padma 2 • Mirpur Route</div>
+              <div class="text-[11px] text-text-secondary">BRTC-2402 • Arriving 8 min (Mirpur 11.5)</div>
+            </div>
+          </div>
+        </button>
+      </div>
+      <div class="mt-3 pt-3 border-t border-border-line/40">
+        <button onclick="closeBusSelectorModal(); openBusScheduleModal();" class="w-full py-2.5 px-3 rounded-xl bg-surface-highest hover:bg-surface-bright text-text-primary font-bold text-xs flex items-center justify-center gap-1.5 transition-all">
+          <span class="material-symbols-outlined text-[16px] text-warning">calendar_month</span>
+          <span>View Fall 25 Timetable (সময়সূচী)</span>
+        </button>
+      </div>
+    </dialog>
+
+    <!-- 1.1 Official Fall 25 Bus Schedule Modal -->
+    <dialog id="bus-schedule-modal" class="m-auto rounded-3xl bg-surface-elevated text-text-primary p-5 backdrop:bg-surface/80 shadow-2xl max-w-[420px] w-full border border-border-line/40 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-[#991b1b]/20 flex items-center justify-center text-[#ef4444] border border-[#ef4444]/40">
+            <span class="material-symbols-outlined text-[20px]">directions_bus</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-text-primary tracking-tight">PADMA FALL 25 BUS SCHEDULE</h3>
+            <p class="text-[10.5px] text-text-secondary font-medium">পদ্মা ফল ২৫ বাস সময়সূচী (মিরপুর ১২ ➔ ভার্সিটি)</p>
+          </div>
+        </div>
+        <button onclick="closeBusScheduleModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:text-text-primary bg-surface-highest">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+      
+      <!-- Injected by renderBusScheduleModal() in tracker.js -->
+      <div id="bus-schedule-modal-content"></div>
+    </dialog>
 
     <!-- Bottom Nav -->
     <nav class="fixed bottom-0 max-w-[430px] w-full z-40 pb-safe bg-surface-sidebar/95 backdrop-blur-xl shadow-[0_-1px_12px_rgba(0,0,0,0.35)] border-t border-border-line/30">
@@ -206,6 +296,7 @@
     </nav>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../../assets/js/supabase-client.js"></script>
   <script src="../../assets/js/auth.js"></script>
   <script src="../../assets/js/tracker.js"></script>
