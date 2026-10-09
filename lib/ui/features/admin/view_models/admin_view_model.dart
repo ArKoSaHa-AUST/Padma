@@ -71,7 +71,7 @@ class AdminBusStoppage {
 
 class AdminBusItem {
   final String id;
-  final String title;
+  String title;
   final String busNumber;
   final String driverName;
   final String driverPhone;
@@ -180,16 +180,58 @@ class AdminViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // --- Official Fall 25 Route Stoppages ---
+  static const List<AdminBusStoppage> fall25FirstBusStoppages = [
+    AdminBusStoppage(name: 'Mirpur 12 (BRT Pump)', lat: 23.8272, lng: 90.3644, eta: '06:45 AM'),
+    AdminBusStoppage(name: 'Mirpur 11.5 (Rongdhonu)', lat: 23.8210, lng: 90.3660, eta: '06:48 AM'),
+    AdminBusStoppage(name: 'Purobi (Bonolota)', lat: 23.8160, lng: 90.3665, eta: '06:50 AM'),
+    AdminBusStoppage(name: 'Mirpur 11 (Eastern Bank)', lat: 23.8120, lng: 90.3670, eta: '06:53 AM'),
+    AdminBusStoppage(name: 'Mirpur Bangla School', lat: 23.8090, lng: 90.3678, eta: '06:55 AM'),
+    AdminBusStoppage(name: 'Mirpur Original 10 (Opp. Popular)', lat: 23.8078, lng: 90.3682, eta: '06:57 AM'),
+    AdminBusStoppage(name: 'Mirpur 10 (Opp. Folpotti)', lat: 23.8068, lng: 90.3687, eta: '07:05 AM'),
+    AdminBusStoppage(name: 'Senpara (Al Helal Hospital)', lat: 23.8015, lng: 90.3710, eta: '07:08 AM'),
+    AdminBusStoppage(name: 'Kazipara (Shwapno)', lat: 23.7963, lng: 90.3728, eta: '07:11 AM'),
+    AdminBusStoppage(name: 'Monipur School', lat: 23.7920, lng: 90.3745, eta: '07:15 AM'),
+    AdminBusStoppage(name: 'Shewrapara (Opp. DSS)', lat: 23.7876, lng: 90.3755, eta: '07:23 AM'),
+    AdminBusStoppage(name: 'Taltola (Dumping Station)', lat: 23.7812, lng: 90.3775, eta: '07:25 AM'),
+    AdminBusStoppage(name: 'Agargaon (Opp. IDB Bhaban)', lat: 23.7775, lng: 90.3805, eta: '07:28 AM'),
+    AdminBusStoppage(name: 'Varsity (AUST Campus)', lat: 23.7695, lng: 90.4074, eta: '07:45 AM'),
+  ];
+
+  static const List<AdminBusStoppage> fall25SecondBusStoppages = [
+    AdminBusStoppage(name: 'Mirpur 12 (BRT Pump)', lat: 23.8272, lng: 90.3644, eta: '08:30 AM'),
+    AdminBusStoppage(name: 'Mirpur 11.5 (Rongdhonu)', lat: 23.8210, lng: 90.3660, eta: '08:33 AM'),
+    AdminBusStoppage(name: 'Purobi (Bonolota)', lat: 23.8160, lng: 90.3665, eta: '08:36 AM'),
+    AdminBusStoppage(name: 'Mirpur 11 (Eastern Bank)', lat: 23.8120, lng: 90.3670, eta: '08:39 AM'),
+    AdminBusStoppage(name: 'Mirpur Bangla School', lat: 23.8090, lng: 90.3678, eta: '08:42 AM'),
+    AdminBusStoppage(name: 'Mirpur Original 10 (Opp. Popular)', lat: 23.8078, lng: 90.3682, eta: '08:44 AM'),
+    AdminBusStoppage(name: 'Mirpur 10 (Opp. Folpotti)', lat: 23.8068, lng: 90.3687, eta: '08:58 AM'),
+    AdminBusStoppage(name: 'Senpara (Al Helal Hospital)', lat: 23.8015, lng: 90.3710, eta: '09:01 AM'),
+    AdminBusStoppage(name: 'Kazipara (Shwapno)', lat: 23.7963, lng: 90.3728, eta: '09:04 AM'),
+    AdminBusStoppage(name: 'Monipur School', lat: 23.7920, lng: 90.3745, eta: '09:07 AM'),
+    AdminBusStoppage(name: 'Shewrapara (Opp. DSS)', lat: 23.7876, lng: 90.3755, eta: '09:15 AM'),
+    AdminBusStoppage(name: 'Taltola (Dumping Station)', lat: 23.7812, lng: 90.3775, eta: '09:20 AM'),
+    AdminBusStoppage(name: 'Agargaon (Opp. IDB Bhaban)', lat: 23.7775, lng: 90.3805, eta: '09:24 AM'),
+    AdminBusStoppage(name: 'Varsity (AUST Campus)', lat: 23.7695, lng: 90.4074, eta: '09:45 AM'),
+  ];
+
+  // Dynamic 1st Bus Assignment (Padma 1 vs Padma 2)
+  String _firstBusId = 'bus_1';
+  String get firstBusId => _firstBusId;
+  bool get isBus1First => _firstBusId == 'bus_1';
+  String get firstBusName => _firstBusId == 'bus_1' ? 'Padma 1' : 'Padma 2';
+  String get secondBusName => _firstBusId == 'bus_1' ? 'Padma 2' : 'Padma 1';
+
   // --- Fleet State: 2 Buses only (Padma 1 and Padma 2) ---
   final List<AdminBusItem> _fleet = [
     AdminBusItem(
       id: 'bus_1',
-      title: 'Padma 1 (Mirpur Route)',
+      title: 'Padma 1 (1st Bus • 06:45 AM)',
       busNumber: 'Dhaka Metro-Cha 11-4589',
       driverName: 'Md. Rafiqul Islam',
       driverPhone: '+880 1711-234567',
-      currentStop: 'Mirpur 12',
-      nextStop: 'Mirpur 11',
+      currentStop: 'Mirpur 12 (BRT Pump)',
+      nextStop: 'Mirpur 11.5 (Rongdhonu)',
       currentStopIndex: 0,
       status: AdminBusStatus.tripEnded, // Default Trip Ended
       isBroadcastingGps: false,
@@ -198,50 +240,62 @@ class AdminViewModel extends ChangeNotifier {
       etaMinutes: 0,
       latitude: 23.8272,
       longitude: 90.3644,
-      stoppages: const [
-        AdminBusStoppage(name: 'Mirpur 12', lat: 23.8272, lng: 90.3644, eta: '07:15 AM'),
-        AdminBusStoppage(name: 'Mirpur 11', lat: 23.8173, lng: 90.3653, eta: '07:22 AM'),
-        AdminBusStoppage(name: 'Mirpur 10', lat: 23.8070, lng: 90.3686, eta: '07:30 AM'),
-        AdminBusStoppage(name: 'Kazipara', lat: 23.7963, lng: 90.3725, eta: '07:38 AM'),
-        AdminBusStoppage(name: 'Shewrapara', lat: 23.7876, lng: 90.3751, eta: '07:45 AM'),
-        AdminBusStoppage(name: 'Agargaon Metro', lat: 23.7785, lng: 90.3794, eta: '07:55 AM'),
-        AdminBusStoppage(name: 'Bijoy Sarani', lat: 23.7663, lng: 90.3872, eta: '08:05 AM'),
-        AdminBusStoppage(name: 'AUST Campus (Tejgaon)', lat: 23.7695, lng: 90.4074, eta: '08:20 AM'),
-      ],
+      stoppages: fall25FirstBusStoppages,
     ),
     AdminBusItem(
       id: 'bus_2',
-      title: 'Padma 2 (Uttara Route)',
+      title: 'Padma 2 (2nd Bus • 08:30 AM)',
       busNumber: 'Dhaka Metro-Cha 11-8920',
       driverName: 'Al-Amin Hossain',
       driverPhone: '+880 1812-345678',
-      currentStop: 'Uttara House Building',
-      nextStop: 'Azampur',
+      currentStop: 'Mirpur 12 (BRT Pump)',
+      nextStop: 'Mirpur 11.5 (Rongdhonu)',
       currentStopIndex: 0,
       status: AdminBusStatus.tripEnded, // Default Trip Ended
       isBroadcastingGps: false,
       currentSpeed: 0,
       passengerCount: 0,
       etaMinutes: 0,
-      latitude: 23.8748,
-      longitude: 90.3986,
-      stoppages: const [
-        AdminBusStoppage(name: 'Uttara House Building', lat: 23.8748, lng: 90.3986, eta: '07:00 AM'),
-        AdminBusStoppage(name: 'Azampur', lat: 23.8682, lng: 90.4005, eta: '07:12 AM'),
-        AdminBusStoppage(name: 'Airport Road Crossing', lat: 23.8515, lng: 90.4078, eta: '07:25 AM'),
-        AdminBusStoppage(name: 'Khilkhet', lat: 23.8315, lng: 90.4175, eta: '07:38 AM'),
-        AdminBusStoppage(name: 'Radisson / Army Golf', lat: 23.8210, lng: 90.4120, eta: '07:48 AM'),
-        AdminBusStoppage(name: 'Kakoli / Banani', lat: 23.7940, lng: 90.4042, eta: '08:00 AM'),
-        AdminBusStoppage(name: 'Mohakhali', lat: 23.7778, lng: 90.4020, eta: '08:12 AM'),
-        AdminBusStoppage(name: 'Nabisco / Tejgaon', lat: 23.7682, lng: 90.4055, eta: '08:22 AM'),
-        AdminBusStoppage(name: 'AUST Campus (Tejgaon)', lat: 23.7695, lng: 90.4074, eta: '08:30 AM'),
-      ],
+      latitude: 23.8272,
+      longitude: 90.3644,
+      stoppages: fall25SecondBusStoppages,
     ),
   ];
 
   List<AdminBusItem> get fleet => _fleet;
 
   int get activeFleetCount => _fleet.where((b) => b.status != AdminBusStatus.tripEnded).length;
+
+  void setFirstBus(String busId, {bool broadcast = true}) {
+    _firstBusId = busId;
+    if (_firstBusId == 'bus_1') {
+      _fleet[0].title = 'Padma 1 (1st Bus • 06:45 AM)';
+      _fleet[0].stoppages.clear();
+      _fleet[0].stoppages.addAll(fall25FirstBusStoppages);
+
+      _fleet[1].title = 'Padma 2 (2nd Bus • 08:30 AM)';
+      _fleet[1].stoppages.clear();
+      _fleet[1].stoppages.addAll(fall25SecondBusStoppages);
+    } else {
+      _fleet[0].title = 'Padma 1 (2nd Bus • 08:30 AM)';
+      _fleet[0].stoppages.clear();
+      _fleet[0].stoppages.addAll(fall25SecondBusStoppages);
+
+      _fleet[1].title = 'Padma 2 (1st Bus • 06:45 AM)';
+      _fleet[1].stoppages.clear();
+      _fleet[1].stoppages.addAll(fall25FirstBusStoppages);
+    }
+
+    if (broadcast) {
+      addAnnouncement(
+        title: 'Daily Bus Order Confirmed',
+        body: '$firstBusName is assigned as today\'s 1st Bus (06:45 AM departure) and $secondBusName as 2nd Bus (08:30 AM departure). Return trips at 3:45 PM & 6:15 PM.',
+        priority: 'High',
+        targetRoute: 'Mirpur Route',
+      );
+    }
+    notifyListeners();
+  }
 
   AdminViewModel() {
     _initSupabaseSync();
