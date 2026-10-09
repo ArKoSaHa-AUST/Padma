@@ -106,5 +106,69 @@ void main() {
       adminVM.clearStoppageWaitNotice(busId);
       expect(bus.activeWaitNotice, isNull);
     });
+
+    test('Can start trip with Admin Person 1-6 and activate GPS broadcasting', () {
+      final adminVM = AdminViewModel();
+      const busId = 'bus_1';
+      final bus = adminVM.fleet.firstWhere((b) => b.id == busId);
+
+      expect(bus.status, AdminBusStatus.tripEnded);
+      expect(bus.isBroadcastingGps, false);
+
+      adminVM.startTripWithAdminAndGps(busId: busId, adminPersonName: 'Person 2');
+      expect(bus.status, AdminBusStatus.onTime);
+      expect(bus.isBroadcastingGps, true);
+      expect(bus.activatedByAdmin, 'Person 2');
+
+      adminVM.endTrip(busId);
+      expect(bus.status, AdminBusStatus.tripEnded);
+      expect(bus.isBroadcastingGps, false);
+    });
+
+    test('Can search users with autocomplete and send direct message', () {
+      final adminVM = AdminViewModel();
+      final results1 = adminVM.searchUsers('User 1');
+      expect(results1.any((u) => u.name == 'User 1'), isTrue);
+      expect(results1.any((u) => u.name == 'User 11'), isTrue);
+      expect(results1.any((u) => u.name == 'User 12'), isTrue);
+
+      final resultsPadma = adminVM.searchUsers('padmaStudent@aust.edu');
+      expect(resultsPadma.length, 1);
+      expect(resultsPadma.first.email, 'padmaStudent@aust.edu');
+
+      adminVM.sendDirectMessageToUser(
+        targetUserId: 'user_1',
+        text: 'Bus schedule confirmed for today.',
+        senderAdminName: 'Transport Admin (Person 1)',
+      );
+      final conv = adminVM.userConversations.firstWhere((c) => c.userId == 'user_1');
+      expect(conv.lastMessage, 'Bus schedule confirmed for today.');
+    });
+
+    test('Can lock/unlock any channel and suspend/unblock any user', () {
+      final adminVM = AdminViewModel();
+      expect(adminVM.isChannelLocked('padma-1'), false);
+      adminVM.toggleChannelLock('padma-1');
+      expect(adminVM.isChannelLocked('padma-1'), true);
+      adminVM.toggleChannelLock('padma-1');
+      expect(adminVM.isChannelLocked('padma-1'), false);
+
+      expect(adminVM.isUserSuspended('user_1'), false);
+      adminVM.toggleUserSuspension('user_1');
+      expect(adminVM.isUserSuspended('user_1'), true);
+      adminVM.unblockUser('user_1');
+      expect(adminVM.isUserSuspended('user_1'), false);
+    });
+
+    test('Can update bus schedules and stoppage ETAs', () {
+      final adminVM = AdminViewModel();
+      adminVM.updateDepartureTimes(firstBusTime: '07:00 AM', secondBusTime: '08:45 AM', returnTimes: '৪.০০ PM');
+      expect(adminVM.firstBusDepartureTime, '07:00 AM');
+      expect(adminVM.secondBusDepartureTime, '08:45 AM');
+      expect(adminVM.returnTripTimes, '৪.০০ PM');
+
+      adminVM.updateStoppageEta(isFirstBus: true, index: 0, newEta: '০৭:০০');
+      expect(AdminViewModel.currentFirstBusStoppages[0].eta, '০৭:০০');
+    });
   });
 }
