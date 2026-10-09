@@ -136,7 +136,284 @@ function renderMessageText(text) {
   });
 }
 
-// Send Message in Active Channel (Dynamically written to Supabase)
+// -------------------------------------------------------------
+// Messenger-Style @Mention Autocomplete Engine
+// -------------------------------------------------------------
+const DEFAULT_COMMUNITY_MEMBERS = [
+  { name: 'Padma Student', handle: 'Padma_CSE_4-1_Mirpur10', dept: 'CSE 4-1', role: 'student', stop: 'Mirpur 10' },
+  { name: 'Tanvir Ahmed', handle: 'Tanvir_CSE_4-1_Mirpur10', dept: 'CSE 4-1', role: 'student', stop: 'Mirpur 10' },
+  { name: 'Sadia Afrin', handle: 'Sadia_CSE_2-2_Campus', dept: 'CSE 2-2', role: 'student', stop: 'Campus' },
+  { name: 'Siam Chowdhury', handle: 'Siam_CSE_3-1_Mirpur10', dept: 'CSE 3-1', role: 'student', stop: 'Mirpur 10' },
+  { name: 'Nafis Iqbal', handle: 'Nafis_EEE_3-2_Uttara', dept: 'EEE 3-2', role: 'student', stop: 'Uttara' },
+  { name: 'Anika Tabassum', handle: 'Anika_Arch_4-2_Dhanmondi', dept: 'Arch 4-2', role: 'student', stop: 'Dhanmondi' },
+  { name: 'Farhan Kabir', handle: 'Farhan_CE_2-1_Mohakhali', dept: 'CE 2-1', role: 'student', stop: 'Mohakhali' },
+  { name: 'Engr. Rafiqul Islam', handle: 'Rafiqul_Transport_Faculty_Campus', dept: 'Transport Dept', role: 'admin', stop: 'Campus' },
+  { name: 'Dr. Shahed Rahman', handle: 'Dr.Shahed_StudentAffairs_Faculty_Campus', dept: 'Student Affairs', role: 'admin', stop: 'Campus' }
+];
+
+function getMentionCandidates() {
+  const map = new Map();
+
+  // 1. Seed community members
+  DEFAULT_COMMUNITY_MEMBERS.forEach(m => {
+    map.set(m.handle.toLowerCase(), m);
+  });
+
+  // 2. Local registered users
+  try {
+    const users = JSON.parse(localStorage.getItem('padma_users_database') || '[]');
+    users.forEach(u => {
+      const tag = formatChatTag(u);
+      if (!map.has(tag.toLowerCase())) {
+        map.set(tag.toLowerCase(), {
+          name: u.name,
+          handle: tag,
+          dept: `${u.department || 'AUST'} ${u.semester || ''}`,
+          role: u.role || 'student',
+          stop: u.pickupDestination || 'Campus'
+        });
+      }
+    });
+  } catch (e) {}
+
+  // 3. Historical message senders
+  try {
+    const msgs = getAllChatMessages();
+    msgs.forEach(m => {
+      if (m.senderTag && !map.has(m.senderTag.toLowerCase())) {
+        map.set(m.senderTag.toLowerCase(), {
+          name: m.senderName || m.senderTag,
+          handle: m.senderTag,
+          dept: m.isAdmin ? 'Transport Admin' : 'AUST Student',
+          role: m.isAdmin ? 'admin' : 'student',
+          stop: 'Transit'
+        });
+      }
+    });
+  } catch (e) {}
+
+  return Array.from(map.values());
+}
+
+let activeMentionPopup = null;
+let activeMentionInput = null;
+let mentionSelectedIndex = 0;
+let filteredMentionCandidates = [];
+
+function getOrCreateMentionPopup() {
+  let popup = document.getElementById('messenger-mention-popup');
+  if (!popup) {
+    popup = document.createElement('div');
+    popup.id = 'messenger-mention-popup';
+    popup.className = 'fixed z-50 hidden w-[320px] max-w-[92vw] bg-[#1e2024]/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-border-line/60 overflow-hidden text-text-primary animate-fade-in';
+    document.body.appendChild(popup);
+  }
+  return popup;
+}
+
+function hideMentionPopup() {
+  const popup = document.getElementById('messenger-mention-popup');
+  if (popup) {
+    popup.classList.add('hidden');
+  }
+  activeMentionInput = null;
+  filteredMentionCandidates = [];
+  mentionSelectedIndex = 0;
+}
+
+function renderMentionPopup(inputEl, query, candidates) {
+  const popup = getOrCreateMentionPopup();
+  activeMentionInput = inputEl;
+  filteredMentionCandidates = candidates;
+
+  if (candidates.length === 0) {
+    hideMentionPopup();
+    return;
+  }
+
+  // Adjust selected index
+  if (mentionSelectedIndex >= candidates.length) {
+    mentionSelectedIndex = 0;
+  }
+
+  // Compute positioning directly above the input container
+  const rect = inputEl.getBoundingClientRect();
+  const popupHeight = Math.min(260, 48 + candidates.length * 52);
+  let top = rect.top - popupHeight - 10;
+  let left = rect.left;
+
+  // Window bounds safety check
+  if (left + 320 > window.innerWidth - 12) {
+    left = window.innerWidth - 320 - 12;
+  }
+  if (left < 12) left = 12;
+  if (top < 10) {
+    top = rect.bottom + 8; // flip below if not enough room above
+  }
+
+  popup.style.top = `${top}px`;
+  popup.style.left = `${left}px`;
+
+  popup.innerHTML = `
+    <div class="px-3.5 py-2 bg-surface-sidebar border-b border-border-line/40 flex items-center justify-between text-[11px] font-bold text-text-muted uppercase tracking-wider">
+      <div class="flex items-center gap-1.5">
+        <span class="text-primary font-mono text-xs">@</span>
+        <span>Mention Student / Admin</span>
+      </div>
+      <span class="text-[10px] text-text-muted lowercase">${candidates.length} match${candidates.length > 1 ? 'es' : ''}</span>
+    </div>
+    <div class="max-h-[210px] overflow-y-auto no-scrollbar divide-y divide-border-line/20">
+      ${candidates.map((c, idx) => {
+        const isSelected = idx === mentionSelectedIndex;
+        const initials = (c.name || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+        return `
+          <div class="mention-item flex items-center gap-2.5 px-3 py-2 cursor-pointer transition-colors ${isSelected ? 'bg-primary/20 text-primary-fixed border-l-4 border-primary' : 'hover:bg-surface-elevated text-text-secondary hover:text-text-primary'}" data-index="${idx}">
+            <div class="relative w-8 h-8 rounded-full ${c.role === 'admin' ? 'bg-purple-900 text-purple-200' : 'bg-primary/20 text-primary'} flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+              ${initials}
+              <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ${c.role === 'admin' ? 'bg-purple-400' : 'bg-success'} border border-surface-container-lowest"></div>
+            </div>
+            <div class="flex flex-col min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 truncate">
+                <span class="font-semibold text-xs text-text-primary truncate">${escapeHtml(c.name)}</span>
+                ${c.role === 'admin' ? '<span class="px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 font-bold text-[8.5px] uppercase">Admin</span>' : ''}
+              </div>
+              <div class="flex items-center justify-between gap-1 text-[10.5px]">
+                <span class="font-mono text-primary truncate">@${escapeHtml(c.handle)}</span>
+                <span class="text-text-muted truncate shrink-0">${escapeHtml(c.dept)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  popup.classList.remove('hidden');
+
+  // Attach click listeners to items
+  popup.querySelectorAll('.mention-item').forEach(el => {
+    el.addEventListener('mousedown', (e) => {
+      e.preventDefault(); // Prevent input blur
+      const index = parseInt(el.getAttribute('data-index'), 10);
+      selectMentionCandidate(index);
+    });
+  });
+}
+
+function selectMentionCandidate(index) {
+  if (!activeMentionInput || !filteredMentionCandidates[index]) return;
+
+  const candidate = filteredMentionCandidates[index];
+  const input = activeMentionInput;
+  const val = input.value;
+  const cursor = input.selectionStart || val.length;
+
+  // Find the @ preceding the cursor
+  const textBefore = val.slice(0, cursor);
+  const atIndex = textBefore.lastIndexOf('@');
+  if (atIndex !== -1) {
+    const beforeAt = val.slice(0, atIndex);
+    const afterCursor = val.slice(cursor);
+    const replacement = `@${candidate.handle} `;
+    input.value = beforeAt + replacement + afterCursor;
+
+    const newCursor = (beforeAt + replacement).length;
+    input.focus();
+    input.setSelectionRange(newCursor, newCursor);
+  }
+
+  hideMentionPopup();
+}
+
+function setupMessengerMentionAutocomplete(inputEl) {
+  if (!inputEl || inputEl.dataset.mentionAttached) return;
+  inputEl.dataset.mentionAttached = 'true';
+
+  inputEl.addEventListener('input', () => {
+    const val = inputEl.value;
+    const cursor = inputEl.selectionStart || 0;
+    const textBefore = val.slice(0, cursor);
+
+    // Look for @ preceding the cursor without spaces after it
+    const lastAtIndex = textBefore.lastIndexOf('@');
+    if (lastAtIndex !== -1) {
+      const queryAfterAt = textBefore.slice(lastAtIndex + 1);
+      // Ensure there's no space in the active mention query
+      if (!/\s/.test(queryAfterAt)) {
+        const queryLower = queryAfterAt.toLowerCase();
+        const allCandidates = getMentionCandidates();
+        const matches = allCandidates.filter(c => 
+          c.name.toLowerCase().includes(queryLower) ||
+          c.handle.toLowerCase().includes(queryLower) ||
+          c.dept.toLowerCase().includes(queryLower) ||
+          c.stop.toLowerCase().includes(queryLower)
+        );
+        mentionSelectedIndex = 0;
+        renderMentionPopup(inputEl, queryLower, matches);
+        return;
+      }
+    }
+    hideMentionPopup();
+  });
+
+  inputEl.addEventListener('keydown', (e) => {
+    const popup = document.getElementById('messenger-mention-popup');
+    const isVisible = popup && !popup.classList.contains('hidden');
+
+    if (!isVisible || filteredMentionCandidates.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      mentionSelectedIndex = (mentionSelectedIndex + 1) % filteredMentionCandidates.length;
+      renderMentionPopup(inputEl, '', filteredMentionCandidates);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      mentionSelectedIndex = (mentionSelectedIndex - 1 + filteredMentionCandidates.length) % filteredMentionCandidates.length;
+      renderMentionPopup(inputEl, '', filteredMentionCandidates);
+    } else if (e.key === 'Enter' || e.key === 'Tab') {
+      e.preventDefault();
+      selectMentionCandidate(mentionSelectedIndex);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      hideMentionPopup();
+    }
+  });
+
+  inputEl.addEventListener('blur', () => {
+    // Delay hide slightly so click inside popup registers
+    setTimeout(hideMentionPopup, 200);
+  });
+}
+
+function attachMentionsToAllInputs() {
+  const inputIds = [
+    'padma1-chat-input',
+    'padma2-chat-input',
+    'rules-chat-input',
+    'ann-chat-input',
+    'contact-admin-input'
+  ];
+  inputIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) setupMessengerMentionAutocomplete(el);
+  });
+
+  document.querySelectorAll('input[type="text"], textarea').forEach(el => {
+    if (el.placeholder && el.placeholder.toLowerCase().includes('message')) {
+      setupMessengerMentionAutocomplete(el);
+    }
+  });
+}
+
+// Global click dismiss
+document.addEventListener('click', (e) => {
+  const popup = document.getElementById('messenger-mention-popup');
+  if (popup && !popup.contains(e.target) && e.target !== activeMentionInput) {
+    hideMentionPopup();
+  }
+});
+
+// Send Message in Active Channel (Dynamically written to Supabase & Realtime Broadcasted)
 async function sendChatMessage(channelId, inputElementId) {
   const user = getCurrentUser();
   if (!user) {
@@ -159,6 +436,8 @@ async function sendChatMessage(channelId, inputElementId) {
   if (!input) return;
   const text = input.value.trim();
   if (!text) return;
+
+  hideMentionPopup();
 
   const senderTag = formatChatTag(user);
   const msgId = 'msg_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
@@ -194,6 +473,7 @@ async function sendChatMessage(channelId, inputElementId) {
         is_urgent: channelId === 'rules-and-regulation',
         reactions: {}
       });
+      SupabaseDb.broadcastChange('chat_message', newMessage);
     } catch (e) {
       console.warn('Supabase post message warning:', e);
     }
@@ -556,3 +836,13 @@ function escapeHtml(str) {
     }[tag] || tag)
   );
 }
+
+// Global Exports
+window.attachMentionsToAllInputs = attachMentionsToAllInputs;
+window.setupMessengerMentionAutocomplete = setupMessengerMentionAutocomplete;
+window.getMentionCandidates = getMentionCandidates;
+
+document.addEventListener('DOMContentLoaded', () => {
+  attachMentionsToAllInputs();
+});
+
