@@ -17,70 +17,87 @@ class AdminFleetTab extends StatelessWidget {
     );
   }
 
-  void _showStatusDialog(BuildContext context, AdminViewModel adminVM, AdminBusItem bus) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: PadmaTheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: PadmaTheme.borderLine)),
-        title: Text('Change Status: ${bus.title}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: PadmaTheme.textPrimary)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: AdminBusStatus.values.map((status) {
-            final isSelected = bus.status == status;
-            return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              decoration: BoxDecoration(
-                color: isSelected ? status.color.withValues(alpha: 0.15) : PadmaTheme.surfaceElevated,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: isSelected ? status.color : PadmaTheme.borderLine),
-              ),
-              child: ListTile(
-                dense: true,
-                leading: Icon(Icons.circle, color: status.color, size: 12),
-                title: Text(status.displayName, style: TextStyle(fontSize: 13, fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500, color: PadmaTheme.textPrimary)),
-                trailing: isSelected ? Icon(Icons.check_rounded, color: status.color, size: 18) : null,
-                onTap: () {
-                  adminVM.updateBusStatus(bus.id, status);
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('${bus.title} status updated to ${status.displayName}')),
-                  );
-                  if (status == AdminBusStatus.onTime) {
-                    _navigateToLiveTracker(context, bus.id);
-                  }
-                },
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
+  /// Interactive Flow for Starting Trip:
+  /// 1. Ask which admin is activating (Dropdown Person 1 to Person 6)
+  /// 2. Ask for GPS broadcasting permission prompt
+  /// 3. Update status to On Time and start Uber-like live GPS tracking
+  void _showStartTripFlow(BuildContext context, AdminViewModel adminVM, AdminBusItem bus) {
+    String selectedAdmin = AdminViewModel.availableAdminPersons.first;
 
-  void _showSpeedDialog(BuildContext context, AdminViewModel adminVM, AdminBusItem bus) {
-    int currentSpeed = bus.currentSpeed == 0 ? 36 : bus.currentSpeed;
+    // Step 1: Admin Identity Selection Dialog
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
+        builder: (dialogCtx, setModalState) => AlertDialog(
           backgroundColor: PadmaTheme.surface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: PadmaTheme.borderLine)),
-          title: const Text('Override Speed Telemetry', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: PadmaTheme.textPrimary)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: PadmaTheme.borderLine),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: PadmaTheme.primaryTeal.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.badge_rounded, color: PadmaTheme.primaryTeal, size: 20),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Trip Activation Admin',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: PadmaTheme.textPrimary),
+                ),
+              ),
+            ],
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('$currentSpeed KM/H', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: PadmaTheme.primaryTeal)),
-              Slider(
-                value: currentSpeed.toDouble(),
-                min: 0,
-                max: 80,
-                divisions: 16,
-                activeColor: PadmaTheme.primaryTeal,
-                inactiveColor: PadmaTheme.borderLine,
-                onChanged: (val) {
-                  setDialogState(() => currentSpeed = val.round());
-                },
+              Text(
+                'Please select which admin is activating the live journey for ${bus.title}:',
+                style: const TextStyle(fontSize: 12.5, color: PadmaTheme.textSecondary, height: 1.4),
+              ),
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                decoration: BoxDecoration(
+                  color: PadmaTheme.surfaceElevated,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: PadmaTheme.primaryTeal.withValues(alpha: 0.5)),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: selectedAdmin,
+                    isExpanded: true,
+                    dropdownColor: PadmaTheme.surfaceElevated,
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: PadmaTheme.primaryTeal),
+                    items: AdminViewModel.availableAdminPersons.map((name) {
+                      return DropdownMenuItem<String>(
+                        value: name,
+                        child: Row(
+                          children: [
+                            const Icon(Icons.person_pin_rounded, size: 18, color: PadmaTheme.primaryTeal),
+                            const SizedBox(width: 8),
+                            Text(
+                              name,
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: PadmaTheme.textPrimary),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setModalState(() => selectedAdmin = val);
+                      }
+                    },
+                  ),
+                ),
               ),
             ],
           ),
@@ -89,19 +106,130 @@ class AdminFleetTab extends StatelessWidget {
               onPressed: () => Navigator.pop(ctx),
               child: const Text('Cancel', style: TextStyle(color: PadmaTheme.textMuted)),
             ),
-            ElevatedButton(
+            ElevatedButton.icon(
               onPressed: () {
-                adminVM.updateBusSpeed(bus.id, currentSpeed);
                 Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${bus.title} speed updated to $currentSpeed KM/H')),
-                );
+                _showGpsPermissionPrompt(context, adminVM, bus, selectedAdmin);
               },
-              style: ElevatedButton.styleFrom(backgroundColor: PadmaTheme.primaryTeal, foregroundColor: PadmaTheme.onPrimary),
-              child: const Text('Save Speed'),
+              icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+              label: const Text('Proceed to GPS Broadcast', style: TextStyle(fontWeight: FontWeight.w700)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: PadmaTheme.primaryTeal,
+                foregroundColor: PadmaTheme.onPrimary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Step 2: System-styled GPS Broadcasting Permission Request Modal
+  void _showGpsPermissionPrompt(BuildContext context, AdminViewModel adminVM, AdminBusItem bus, String adminName) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: PadmaTheme.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: PadmaTheme.primaryTeal, width: 1.2),
+        ),
+        title: Column(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: PadmaTheme.primaryTeal.withValues(alpha: 0.18),
+                shape: BoxShape.circle,
+                border: Border.all(color: PadmaTheme.primaryTeal.withValues(alpha: 0.5)),
+              ),
+              child: const Icon(Icons.location_on_rounded, color: PadmaTheme.primaryTeal, size: 30),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Allow "PADMA Admin" to access device location?',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: PadmaTheme.textPrimary),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'PADMA requires precise location permissions while broadcasting live bus telemetry so students can track the bus in real-time like Uber.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12.5, color: PadmaTheme.textSecondary, height: 1.4),
+            ),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: PadmaTheme.surfaceElevated,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: PadmaTheme.borderLine),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.shield_outlined, size: 16, color: PadmaTheme.primaryTeal),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Activating Admin: $adminName\nStatus: Switching to "On Time" (Broadcasting)',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: PadmaTheme.textPrimary),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actionsAlignment: MainAxisAlignment.spaceEvenly,
+        actions: [
+          OutlinedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('⚠️ GPS permission denied. Trip was not started.'),
+                  backgroundColor: PadmaTheme.urgentRed,
+                ),
+              );
+            },
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: PadmaTheme.borderLine),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Don\'t Allow', style: TextStyle(color: PadmaTheme.textMuted)),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(ctx);
+              adminVM.startTripWithAdminAndGps(
+                busId: bus.id,
+                adminPersonName: adminName,
+              );
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('🟢 Live GPS tracking activated by $adminName! Broadcasting to students.'),
+                  backgroundColor: PadmaTheme.successGreen,
+                ),
+              );
+              _navigateToLiveTracker(context, bus.id);
+            },
+            icon: const Icon(Icons.sensors_rounded, size: 16),
+            label: const Text('Allow & Start Tracking', style: TextStyle(fontWeight: FontWeight.w800)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: PadmaTheme.primaryTeal,
+              foregroundColor: PadmaTheme.onPrimary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -115,13 +243,14 @@ class AdminFleetTab extends StatelessWidget {
       itemCount: adminVM.fleet.length,
       itemBuilder: (context, index) {
         final bus = adminVM.fleet[index];
+        final isTripEnded = bus.isTripEnded;
 
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           child: Admin3dCard(
             onTap: () => _navigateToLiveTracker(context, bus.id),
-            borderColor: bus.isBroadcastingGps ? PadmaTheme.primaryTeal.withValues(alpha: 0.4) : PadmaTheme.borderLine,
-            glowColor: bus.isBroadcastingGps ? PadmaTheme.primaryTeal.withValues(alpha: 0.1) : Colors.transparent,
+            borderColor: bus.isBroadcastingGps ? PadmaTheme.primaryTeal.withValues(alpha: 0.5) : PadmaTheme.borderLine,
+            glowColor: bus.isBroadcastingGps ? PadmaTheme.primaryTeal.withValues(alpha: 0.12) : Colors.transparent,
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,7 +280,14 @@ class AdminFleetTab extends StatelessWidget {
                       ),
                     ),
                     InkWell(
-                      onTap: () => _showStatusDialog(context, adminVM, bus),
+                      onTap: () {
+                        if (isTripEnded) {
+                          _showStartTripFlow(context, adminVM, bus);
+                        } else {
+                          // Allow ending trip or changing status
+                          _showActiveTripMenu(context, adminVM, bus);
+                        }
+                      },
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
@@ -173,53 +309,142 @@ class AdminFleetTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
 
-                // Telemetry Metrics Row
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: PadmaTheme.surfaceElevated,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: PadmaTheme.borderLine),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      InkWell(
-                        onTap: () => _showSpeedDialog(context, adminVM, bus),
-                        child: Column(
+                // Replaced area: Trip Activation & GPS Broadcasting Area
+                if (isTripEnded) ...[
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: PadmaTheme.surfaceElevated,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: PadmaTheme.borderLine),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
                           children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text('${bus.currentSpeed}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: PadmaTheme.primaryTeal)),
-                                const SizedBox(width: 2),
-                                const Icon(Icons.edit, size: 10, color: PadmaTheme.primaryTeal),
-                              ],
+                            Icon(Icons.pause_circle_filled_rounded, size: 16, color: PadmaTheme.textMuted),
+                            SizedBox(width: 6),
+                            Text(
+                              'Trip Status: Trip Ended • Idle at Terminal',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: PadmaTheme.textSecondary),
                             ),
-                            const Text('KM/H SPEED', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: PadmaTheme.textMuted)),
                           ],
                         ),
-                      ),
-                      Container(width: 1, height: 24, color: PadmaTheme.borderLine),
-                      Column(
-                        children: [
-                          Text('${bus.etaMinutes}m', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: PadmaTheme.busAmber)),
-                          const Text('EST. ARRIVAL', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: PadmaTheme.textMuted)),
-                        ],
-                      ),
-                      Container(width: 1, height: 24, color: PadmaTheme.borderLine),
-                      Column(
-                        children: [
-                          Text('${bus.passengerCount} / 52', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: PadmaTheme.textPrimary)),
-                          const Text('CAPACITY', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: PadmaTheme.textMuted)),
-                        ],
-                      ),
-                    ],
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Tap below to verify admin identity, request GPS broadcast permission, and start live Uber-like tracking for students.',
+                          style: TextStyle(fontSize: 11.5, color: PadmaTheme.textMuted, height: 1.3),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () => _showStartTripFlow(context, adminVM, bus),
+                            icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                            label: const Text('START TRIP & BROADCAST GPS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: PadmaTheme.primaryTeal,
+                              foregroundColor: PadmaTheme.onPrimary,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 14),
+                ] else ...[
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: PadmaTheme.primaryTeal.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: PadmaTheme.primaryTeal.withValues(alpha: 0.4)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 10,
+                              height: 10,
+                              decoration: const BoxDecoration(
+                                color: PadmaTheme.successGreen,
+                                shape: BoxShape.circle,
+                                boxShadow: [BoxShadow(color: PadmaTheme.successGreen, blurRadius: 6, spreadRadius: 1)],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'LIVE GPS BROADCASTING ACTIVE',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: PadmaTheme.primaryTeal),
+                            ),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: PadmaTheme.surface,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: PadmaTheme.primaryTeal.withValues(alpha: 0.3)),
+                              ),
+                              child: Text(
+                                'By ${bus.activatedByAdmin ?? 'Admin'}',
+                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: PadmaTheme.primaryTeal),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Current Stop: ${bus.currentStop}',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: PadmaTheme.textPrimary),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () {
+                                  adminVM.endTrip(bus.id);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('🛑 Trip ended for ${bus.title}. GPS broadcast stopped.')),
+                                  );
+                                },
+                                icon: const Icon(Icons.stop_rounded, size: 16, color: PadmaTheme.urgentRed),
+                                label: const Text('END TRIP', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: PadmaTheme.urgentRed)),
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(color: PadmaTheme.urgentRed.withValues(alpha: 0.5)),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () => _navigateToLiveTracker(context, bus.id),
+                                icon: const Icon(Icons.map_rounded, size: 16),
+                                label: const Text('Live Map Tracker', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: PadmaTheme.primaryTeal,
+                                  foregroundColor: PadmaTheme.onPrimary,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
 
-                // Driver & Next Stop Info
+                const SizedBox(height: 12),
+
+                // Driver Contact Row
                 Row(
                   children: [
                     const Icon(Icons.person_outline_rounded, size: 16, color: PadmaTheme.textSecondary),
@@ -250,63 +475,48 @@ class AdminFleetTab extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on_outlined, size: 16, color: PadmaTheme.primaryTeal),
-                    const SizedBox(width: 6),
-                    const Text('Next Stop: ', style: TextStyle(fontSize: 12, color: PadmaTheme.textMuted)),
-                    Text(bus.nextStop, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: PadmaTheme.textPrimary)),
-                  ],
-                ),
-                const SizedBox(height: 14),
-
-                // Action Bar: GPS Beacon Toggle & Live Tracker Action
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          adminVM.toggleBusGps(bus.id);
-                          _navigateToLiveTracker(context, bus.id);
-                        },
-                        icon: Icon(
-                          bus.isBroadcastingGps ? Icons.sensors_rounded : Icons.sensors_off_rounded,
-                          size: 16,
-                        ),
-                        label: Text(
-                          bus.isBroadcastingGps ? 'GPS Beacon: Broadcasting' : 'GPS Beacon: Disabled',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: bus.isBroadcastingGps ? PadmaTheme.primaryTeal : PadmaTheme.surfaceElevated,
-                          foregroundColor: bus.isBroadcastingGps ? PadmaTheme.onPrimary : PadmaTheme.urgentRed,
-                          side: BorderSide(color: bus.isBroadcastingGps ? PadmaTheme.primaryTeal : PadmaTheme.urgentRed.withValues(alpha: 0.5)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton.filledTonal(
-                      tooltip: 'Open Live Tracker & Stoppage Controls',
-                      onPressed: () => _navigateToLiveTracker(context, bus.id),
-                      icon: const Icon(Icons.map_rounded, size: 18, color: PadmaTheme.primaryTeal),
-                      style: IconButton.styleFrom(
-                        backgroundColor: PadmaTheme.surfaceElevated,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          side: const BorderSide(color: PadmaTheme.borderLine),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  void _showActiveTripMenu(BuildContext context, AdminViewModel adminVM, AdminBusItem bus) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: PadmaTheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: PadmaTheme.borderLine)),
+        title: Text('Trip Options: ${bus.title}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: PadmaTheme.textPrimary)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.stop_circle_rounded, color: PadmaTheme.urgentRed),
+              title: const Text('End Current Trip', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: PadmaTheme.urgentRed)),
+              subtitle: const Text('Turns off GPS beacon and sets status to Trip Ended', style: TextStyle(fontSize: 11, color: PadmaTheme.textMuted)),
+              onTap: () {
+                adminVM.endTrip(bus.id);
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('🛑 Trip ended for ${bus.title}')),
+                );
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.map_rounded, color: PadmaTheme.primaryTeal),
+              title: const Text('Open Live Stoppage Controls', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: PadmaTheme.textPrimary)),
+              onTap: () {
+                Navigator.pop(ctx);
+                _navigateToLiveTracker(context, bus.id);
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
