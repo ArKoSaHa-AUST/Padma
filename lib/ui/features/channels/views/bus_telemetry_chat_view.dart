@@ -58,12 +58,6 @@ class _BusTelemetryChatViewState extends State<BusTelemetryChatView> {
     _textController.clear();
   }
 
-  void _insertMention(String tag) {
-    final cur = _textController.text;
-    _textController.text = '$cur@$tag ';
-    _textController.selection = TextSelection.fromPosition(TextPosition(offset: _textController.text.length));
-  }
-
   @override
   Widget build(BuildContext context) {
     final authVM = context.watch<AuthViewModel>();
@@ -273,48 +267,6 @@ class _BusTelemetryChatViewState extends State<BusTelemetryChatView> {
                   ),
                 );
               },
-            ),
-          ),
-
-          // Mention suggestions bar
-          Container(
-            height: 34,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            color: PadmaTheme.surfaceElevated,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                const Center(child: Text('Mention: ', style: TextStyle(fontSize: 10, color: PadmaTheme.textMuted))),
-                InkWell(
-                  onTap: () => _insertMention('Padma_CSE_4-1_Mirpur10'),
-                  child: const Chip(
-                    label: Text('@Padma_CSE_4-1_Mirpur10', style: TextStyle(fontSize: 9.5, color: PadmaTheme.primaryTeal)),
-                    padding: EdgeInsets.zero,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    backgroundColor: PadmaTheme.surface,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                InkWell(
-                  onTap: () => _insertMention('Tanvir_CSE_4-1_Mirpur10'),
-                  child: const Chip(
-                    label: Text('@Tanvir_CSE_4-1_Mirpur10', style: TextStyle(fontSize: 9.5, color: PadmaTheme.primaryTeal)),
-                    padding: EdgeInsets.zero,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    backgroundColor: PadmaTheme.surface,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                InkWell(
-                  onTap: () => _insertMention('Rafiq_Transport_Staff_Mirpur12'),
-                  child: const Chip(
-                    label: Text('@Rafiq_Transport_Staff_Mirpur12', style: TextStyle(fontSize: 9.5, color: Color(0xFF8B5CF6))),
-                    padding: EdgeInsets.zero,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    backgroundColor: PadmaTheme.surface,
-                  ),
-                ),
-              ],
             ),
           ),
 

@@ -154,6 +154,20 @@ class ChannelDrawer extends StatelessWidget {
                   ),
                   _buildChannelTile(
                     context,
+                    name: 'Post Responses',
+                    channelKey: 'post-responses',
+                    icon: Icons.mark_chat_read_rounded,
+                    iconColor: PadmaTheme.primaryTeal,
+                    isActive: activeChannel == 'post-responses' || activeChannel == 'responses',
+                    badge: 'LIVE',
+                    badgeColor: PadmaTheme.primaryTeal,
+                    onTap: () {
+                      Navigator.pop(context);
+                      onSelectChannel(2, 'post-responses');
+                    },
+                  ),
+                  _buildChannelTile(
+                    context,
                     name: 'Contact Admin (1-on-1)',
                     channelKey: 'contact-admin',
                     icon: Icons.support_agent_rounded,
