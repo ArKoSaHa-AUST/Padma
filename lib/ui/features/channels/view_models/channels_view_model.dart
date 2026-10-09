@@ -5,6 +5,8 @@ import '../../../../data/models/blood_request_model.dart';
 import '../../../../data/models/chat_message.dart';
 import '../../../../data/models/complaint_model.dart';
 import '../../../../data/models/lost_found_model.dart';
+import '../../../../data/models/post_response_model.dart';
+import '../../../../data/models/post_comment_model.dart';
 import '../../../../data/models/notification_item.dart';
 import '../../../../data/services/mock_data_service.dart';
 import '../../../../data/services/supabase_service.dart';
@@ -87,6 +89,83 @@ class ChannelsViewModel extends ChangeNotifier {
       authorName: 'Dr. Shahed Rahman',
       authorTag: 'Shahed_StudentAffairs_Official_Campus',
       createdAt: DateTime.now().subtract(const Duration(hours: 5)),
+    ),
+  ];
+
+  // Post Responses List (Blood Donations and Lost & Found Claims)
+  final List<PostResponseModel> _postResponses = [
+    PostResponseModel(
+      id: 'resp_bld_1',
+      postId: 'bld_1',
+      postType: 'blood',
+      postTitle: 'Urgent O+ Blood Needed for Open Heart Surgery',
+      postSummary: 'O+ at National Heart Foundation',
+      requesterId: 'user_student_padma',
+      requesterName: 'Padma Student',
+      requesterTag: 'Padma_CSE_4-1_Mirpur10',
+      responderId: 'user_2',
+      responderName: 'Siam Chowdhury',
+      responderTag: 'Siam_CSE_3-1_Mirpur10',
+      department: 'CSE',
+      semester: '3-1',
+      contactNumber: '+880 1711-889900',
+      fbLink: 'https://facebook.com/siam.aust',
+      availability: 'Available today afternoon after 2 PM',
+      notes: 'Eligible donor, O+ verified, donated 5 months ago.',
+      status: 'pending',
+      createdAt: DateTime.now().subtract(const Duration(minutes: 25)),
+    ),
+    PostResponseModel(
+      id: 'resp_lf_1',
+      postId: 'lf_1',
+      postType: 'lost_found',
+      postTitle: 'Lost Black Leather Wallet in Padma 1',
+      postSummary: 'Padma 1 (Mirpur Route)',
+      requesterId: 'user_student_padma',
+      requesterName: 'Padma Student',
+      requesterTag: 'Padma_CSE_4-1_Mirpur10',
+      responderId: 'user_3',
+      responderName: 'Sadia Afrin',
+      responderTag: 'Sadia_CSE_2-2_Campus',
+      department: 'CSE',
+      semester: '2-2',
+      contactNumber: '+880 1700-112233',
+      fbLink: 'https://facebook.com/sadia.aust',
+      availability: 'Available at AUST Library 3rd Floor',
+      notes: 'I saw this wallet on the upper deck seat 3 and handed it to the bus helper.',
+      status: 'contacted',
+      createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+    ),
+  ];
+
+  // Lost & Found Post Comments
+  final List<PostCommentModel> _postComments = [
+    PostCommentModel(
+      id: 'comm_1',
+      postId: 'lf_1',
+      userId: 'user_2',
+      userName: 'Siam Chowdhury',
+      userTag: 'Siam_CSE_3-1_Mirpur10',
+      content: 'Is this wallet still at the security gate or with the bus conductor?',
+      createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+    ),
+    PostCommentModel(
+      id: 'comm_2',
+      postId: 'lf_1',
+      userId: 'user_student_padma',
+      userName: 'Padma Student',
+      userTag: 'Padma_CSE_4-1_Mirpur10',
+      content: 'It was handed over to the conductor uncle of Padma 1 on Mirpur route.',
+      createdAt: DateTime.now().subtract(const Duration(minutes: 50)),
+    ),
+    PostCommentModel(
+      id: 'comm_3',
+      postId: 'lf_2',
+      userId: 'user_3',
+      userName: 'Sadia Afrin',
+      userTag: 'Sadia_CSE_2-2_Campus',
+      content: 'Does the calculator have a red sticker on the slide cover? I lost mine yesterday.',
+      createdAt: DateTime.now().subtract(const Duration(hours: 3)),
     ),
   ];
 
@@ -185,6 +264,9 @@ class ChannelsViewModel extends ChangeNotifier {
   List<ChatMessage> get bus2Messages => _padma2Messages;
   List<BloodRequestModel> get bloodRequests => _bloodRequests;
   List<LostFoundModel> get lostFoundItems => _lostFoundItems;
+  List<PostResponseModel> get postResponses => _postResponses;
+  List<PostCommentModel> get postComments => List.unmodifiable(_postComments);
+  List<PostCommentModel> getCommentsForPost(String postId) => _postComments.where((c) => c.postId == postId).toList();
   List<ComplaintModel> get complaints => _complaints;
   List<NotificationItem> get notifications => _notifications;
   String get selectedContactAdminId => _selectedContactAdminId;
@@ -495,6 +577,204 @@ class ChannelsViewModel extends ChangeNotifier {
       authorName: authorName,
       authorTag: authorTag,
     );
+  }
+
+  // Edit / Delete Blood Request
+  void updateBloodRequest(BloodRequestModel updated) {
+    final idx = _bloodRequests.indexWhere((r) => r.id == updated.id);
+    if (idx != -1) {
+      _bloodRequests[idx] = updated;
+      notifyListeners();
+    }
+  }
+
+  void deleteBloodRequest(String id) {
+    _bloodRequests.removeWhere((r) => r.id == id);
+    _postResponses.removeWhere((r) => r.postId == id);
+    notifyListeners();
+  }
+
+  // Edit / Delete Lost & Found Item
+  void updateLostFoundItem(LostFoundModel updated) {
+    final idx = _lostFoundItems.indexWhere((i) => i.id == updated.id);
+    if (idx != -1) {
+      _lostFoundItems[idx] = updated;
+      notifyListeners();
+    }
+  }
+
+  void deleteLostFoundItem(String id) {
+    _lostFoundItems.removeWhere((i) => i.id == id);
+    _postResponses.removeWhere((r) => r.postId == id);
+    notifyListeners();
+  }
+
+  // Add / Edit / Delete / Status Update for Post Responses
+  void addPostResponse({
+    required String postId,
+    required String postType,
+    required String postTitle,
+    String postSummary = '',
+    String? requesterId,
+    required String requesterName,
+    required String requesterTag,
+    required String responderId,
+    required String responderName,
+    required String responderTag,
+    String department = 'CSE',
+    String semester = '4-1',
+    required String contactNumber,
+    String? fbLink,
+    String? availability,
+    String? notes,
+  }) {
+    final response = PostResponseModel(
+      id: 'resp_${DateTime.now().millisecondsSinceEpoch}',
+      postId: postId,
+      postType: postType,
+      postTitle: postTitle,
+      postSummary: postSummary,
+      requesterId: requesterId,
+      requesterName: requesterName,
+      requesterTag: requesterTag,
+      responderId: responderId,
+      responderName: responderName,
+      responderTag: responderTag,
+      department: department,
+      semester: semester,
+      contactNumber: contactNumber,
+      fbLink: fbLink,
+      availability: availability,
+      notes: notes,
+      status: 'pending',
+      createdAt: DateTime.now(),
+    );
+    _postResponses.insert(0, response);
+    _notifications.insert(
+      0,
+      NotificationItem(
+        id: 'notif_resp_${DateTime.now().millisecondsSinceEpoch}',
+        title: postType == 'blood' ? 'New Blood Donation Offer' : 'New Lost & Found Response',
+        description: '$responderName responded to "$postTitle"',
+        timestamp: DateTime.now(),
+        type: postType == 'blood' ? NotificationType.blood : NotificationType.transit,
+        icon: postType == 'blood' ? Icons.volunteer_activism_rounded : Icons.mark_chat_read_rounded,
+        color: postType == 'blood' ? const Color(0xFFEF4444) : const Color(0xFFF59E0B),
+        relatedChannel: 'post-responses',
+      ),
+    );
+    notifyListeners();
+  }
+
+  void updatePostResponse(PostResponseModel updated) {
+    final idx = _postResponses.indexWhere((r) => r.id == updated.id);
+    if (idx != -1) {
+      _postResponses[idx] = updated;
+      notifyListeners();
+    }
+  }
+
+  void deletePostResponse(String responseId) {
+    _postResponses.removeWhere((r) => r.id == responseId);
+    notifyListeners();
+  }
+
+  void updateResponseStatus(String responseId, String newStatus) {
+    final idx = _postResponses.indexWhere((r) => r.id == responseId);
+    if (idx != -1) {
+      _postResponses[idx] = _postResponses[idx].copyWith(status: newStatus);
+      notifyListeners();
+    }
+  }
+
+  // -------------------------------------------------------------
+  // Post Comments Methods (Lost & Found)
+  // -------------------------------------------------------------
+  void addPostComment({
+    required String postId,
+    required String userId,
+    required String userName,
+    required String userTag,
+    required String content,
+  }) {
+    if (content.trim().isEmpty) return;
+
+    final comment = PostCommentModel(
+      id: 'comm_${DateTime.now().millisecondsSinceEpoch}',
+      postId: postId,
+      userId: userId,
+      userName: userName,
+      userTag: userTag,
+      content: content.trim(),
+      createdAt: DateTime.now(),
+    );
+    _postComments.add(comment);
+
+    // Notify author if different user
+    final postIndex = _lostFoundItems.indexWhere((i) => i.id == postId);
+    if (postIndex != -1) {
+      final post = _lostFoundItems[postIndex];
+      if (post.authorTag != userTag) {
+        _notifications.insert(
+          0,
+          NotificationItem(
+            id: 'notif_comm_${DateTime.now().millisecondsSinceEpoch}',
+            title: 'New comment on your notice',
+            description: '$userTag commented: "$content"',
+            timestamp: DateTime.now(),
+            type: NotificationType.transit,
+            icon: Icons.chat_bubble_outline_rounded,
+            color: const Color(0xFFF59E0B),
+            relatedChannel: 'lost-and-found',
+          ),
+        );
+      }
+    }
+
+    notifyListeners();
+
+    try {
+      SupabaseService.instance.client.from('post_comments').insert(comment.toJson()).then((_) {}, onError: (e) {
+        debugPrint('[ChannelsViewModel] Supabase insert comment error: $e');
+      });
+    } catch (e) {
+      debugPrint('[ChannelsViewModel] Insert comment exception: $e');
+    }
+  }
+
+  void updatePostComment(String commentId, String newContent) {
+    final idx = _postComments.indexWhere((c) => c.id == commentId);
+    if (idx != -1) {
+      _postComments[idx] = _postComments[idx].copyWith(
+        content: newContent.trim(),
+        updatedAt: DateTime.now(),
+      );
+      notifyListeners();
+
+      try {
+        SupabaseService.instance.client.from('post_comments').update({
+          'content': newContent.trim(),
+          'updated_at': DateTime.now().toIso8601String(),
+        }).eq('id', commentId).then((_) {}, onError: (e) {
+          debugPrint('[ChannelsViewModel] Supabase update comment error: $e');
+        });
+      } catch (e) {
+        debugPrint('[ChannelsViewModel] Update comment exception: $e');
+      }
+    }
+  }
+
+  void deletePostComment(String commentId) {
+    _postComments.removeWhere((c) => c.id == commentId);
+    notifyListeners();
+
+    try {
+      SupabaseService.instance.client.from('post_comments').delete().eq('id', commentId).then((_) {}, onError: (e) {
+        debugPrint('[ChannelsViewModel] Supabase delete comment error: $e');
+      });
+    } catch (e) {
+      debugPrint('[ChannelsViewModel] Delete comment exception: $e');
+    }
   }
 
   void sendPrivateAdminMessage({
