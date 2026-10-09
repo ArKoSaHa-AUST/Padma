@@ -207,60 +207,6 @@ class AdminOverviewTab extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          // AI Transit Intelligence & Anomaly Ticker
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: PadmaTheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: PadmaTheme.primaryTeal.withValues(alpha: 0.4)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Row(
-                  children: [
-                    Icon(Icons.psychology_rounded, color: PadmaTheme.primaryTeal, size: 18),
-                    SizedBox(width: 8),
-                    Text(
-                      'AI Fleet Intelligence & Road Anomalies',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: PadmaTheme.textPrimary),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                ...adminVM.aiInsights.asMap().entries.map((entry) {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: PadmaTheme.surfaceElevated,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: PadmaTheme.borderLine),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            entry.value,
-                            style: const TextStyle(fontSize: 12, color: PadmaTheme.textSecondary, height: 1.3),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        InkWell(
-                          onTap: () => adminVM.dismissInsight(entry.key),
-                          child: const Icon(Icons.close_rounded, size: 16, color: PadmaTheme.textMuted),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
           // Quick Fleet Status Overview
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
