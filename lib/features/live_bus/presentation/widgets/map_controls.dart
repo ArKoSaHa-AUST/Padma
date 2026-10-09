@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../ui/core/theme.dart';
 
-/// Floating map action controls for recentering, zooming, and triggering developer demo tools.
+/// Floating map action controls for recentering, zooming, and simulation tools.
 class MapControls extends StatelessWidget {
   final VoidCallback onRecenter;
   final VoidCallback onZoomIn;

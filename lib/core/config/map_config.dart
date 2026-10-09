@@ -16,7 +16,7 @@ class OpenStreetMapTileProvider implements MapTileProvider {
   const OpenStreetMapTileProvider();
 
   @override
-  String get name => 'OpenStreetMap Development';
+  String get name => 'OpenStreetMap';
 
   @override
   bool get isRasterTile => true;

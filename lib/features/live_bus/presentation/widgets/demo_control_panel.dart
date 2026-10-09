@@ -70,7 +70,7 @@ class DemoControlPanel extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
-                  Icons.developer_mode_rounded,
+                  Icons.tune_rounded,
                   color: PadmaTheme.primaryTeal,
                   size: 20,
                 ),
@@ -81,7 +81,7 @@ class DemoControlPanel extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Live Tracking Simulation Panel',
+                      'Live Tracking Controls',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
