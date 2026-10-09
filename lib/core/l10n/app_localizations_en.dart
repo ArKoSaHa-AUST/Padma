@@ -333,7 +333,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get studentRole => 'Student';
 
   @override
-  String get devRoleSwitch => 'Developer Preview: Switch Role';
+  String get devRoleSwitch => 'Switch Active Role';
 
   @override
   String get search => 'Search channels & stops...';

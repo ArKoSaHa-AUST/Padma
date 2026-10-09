@@ -743,7 +743,7 @@ abstract class AppLocalizations {
   /// No description provided for @devRoleSwitch.
   ///
   /// In en, this message translates to:
-  /// **'Developer Preview: Switch Role'**
+  /// **'Switch Active Role'**
   String get devRoleSwitch;
 
   /// No description provided for @search.

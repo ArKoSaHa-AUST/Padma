@@ -333,7 +333,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get studentRole => 'শিক্ষার্থী';
 
   @override
-  String get devRoleSwitch => 'ডেভেলপার রোল প্রিভিউ';
+  String get devRoleSwitch => 'রোল পরিবর্তন করুন';
 
   @override
   String get search => 'চ্যানেল বা স্টপ খুঁজুন...';

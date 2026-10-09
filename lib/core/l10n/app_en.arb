@@ -107,7 +107,7 @@
   "adminRole": "Admin",
   "driverRole": "Driver",
   "studentRole": "Student",
-  "devRoleSwitch": "Developer Preview: Switch Role",
+  "devRoleSwitch": "Switch Active Role",
   "search": "Search channels & stops...",
   "noNotifications": "No notifications yet",
   "noRequests": "No active blood requests at the moment",
