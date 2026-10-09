@@ -6,6 +6,8 @@ class StopModel {
   final double lng;
   final int order;
   final String scheduledTime;
+  final String firstBusTime;
+  final String secondBusTime;
   final bool isFavorite;
 
   const StopModel({
@@ -16,6 +18,8 @@ class StopModel {
     required this.lng,
     required this.order,
     required this.scheduledTime,
+    this.firstBusTime = '',
+    this.secondBusTime = '',
     this.isFavorite = false,
   });
 
@@ -27,6 +31,8 @@ class StopModel {
     double? lng,
     int? order,
     String? scheduledTime,
+    String? firstBusTime,
+    String? secondBusTime,
     bool? isFavorite,
   }) {
     return StopModel(
@@ -37,6 +43,8 @@ class StopModel {
       lng: lng ?? this.lng,
       order: order ?? this.order,
       scheduledTime: scheduledTime ?? this.scheduledTime,
+      firstBusTime: firstBusTime ?? this.firstBusTime,
+      secondBusTime: secondBusTime ?? this.secondBusTime,
       isFavorite: isFavorite ?? this.isFavorite,
     );
   }
